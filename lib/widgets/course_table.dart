@@ -214,7 +214,7 @@ class CourseTable extends StatelessWidget {
     const weekName = ["一", "二", "三", "四", "五", "六", "日"];
     final list = <Widget>[];
 // 计算当前显示的月份
-    DateTime startOfWeek = DateTime(DateTime.now().year, 9, 1)
+    DateTime startOfWeek = DateTime(DateTime.now().year, 9, 2)
         .add(Duration(days: 7 * (offset - 1)));
     int currentMonth = startOfWeek.month;
     DateTime today = DateTime.now();
@@ -243,9 +243,6 @@ class CourseTable extends StatelessWidget {
 
     // 渲染周一到周日的标题，并在下面显示当前星期的日期
     for (int i = 1; i <= (showWeekend ? 7 : 5); i++) {
-      // DateTime now = DateTime.now();
-      // DateTime firstDayOfWeek = now.subtract(Duration(days: now.weekday - 1));
-      // DateTime currentDay = firstDayOfWeek.add(Duration(days: i - 1));
       DateTime day = startOfWeek.add(Duration(days: i - 1));
       bool isToday = (day.year == today.year &&
           day.month == today.month &&

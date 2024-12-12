@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:schedule/utils/week_index.dart'; // 导入周索引工具
 import 'package:schedule/widgets/course_add_page.dart'; // 导入课程添加页面组件
 import 'package:schedule/widgets/slide_table.dart'; // 导入滑动表格组件
-import 'package:schedule/utils/week_index.dart'; // 导入周索引工具
+
 import '../data/index.dart';
 
 class MainPage extends StatefulWidget {
@@ -17,14 +18,6 @@ class _MainPageState extends State<MainPage> {
   bool _showWeekend = false; // 控制是否显示周末
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // 处理添加按钮按下事件
-  // void _onAddButtonPressed(BuildContext context) {
-  //   Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-  //     return const CourseAdd(
-  //         // onAddCourse: courses,
-  //         ); // 推送课程添加页面
-  //   }));
-  // }
   void _onAddButtonPressed(BuildContext context) async {
     final newCourse =
         await Navigator.of(context).push(MaterialPageRoute(builder: (context) {
@@ -85,7 +78,7 @@ class _MainPageState extends State<MainPage> {
 // 计算当前周次
   int _calculateCurrentWeek() {
     final now = DateTime.now();
-    final startOfWeek = DateTime(now.year, 9, 1);
+    final startOfWeek = DateTime(now.year, 9, 2);
     final difference = now.difference(startOfWeek).inDays;
     return (difference ~/ 7) + 1;
   }

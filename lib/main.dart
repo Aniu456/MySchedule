@@ -6,7 +6,7 @@ void main() async {
   return runApp(const MyApp());
 }
 
-// 自定义的 MyApp 类，继承自 StatelessWidget
+// 自定义的 MyApp 类，继承自 StatelessWidgete
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
           //   backgroundColor: Colors.white, // 设置全局标题栏的背景颜色
           // ),
           colorScheme:
-          ColorScheme.fromSwatch().copyWith(secondary: Colors.white)),
+              ColorScheme.fromSwatch().copyWith(secondary: Colors.white)),
       home: const MainPage(), // 应用的主页
       // debugShowMaterialGrid: false, // 是否显示调试网格
       debugShowCheckedModeBanner: false,

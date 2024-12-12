@@ -2,7 +2,7 @@ List<Map<String, dynamic>> courses = [
   {
     'courseName': '离散数学',
     'remarks': '高数！',
-    'color': [234, 30, 99],
+    'color': [0, 151, 136],
     'times': [
       ['周二', '第一节', '第二节'],
       ['周五', '第一节', '第二节']

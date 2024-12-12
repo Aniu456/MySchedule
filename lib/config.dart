@@ -1,1 +1,1 @@
-const weekIndex = "/wi.txt";
+// const weekIndex = "/wi.txt";

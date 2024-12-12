@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_pickers/pickers.dart';
 import 'package:flutter_pickers/style/picker_style.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import '../data/index.dart';
 
 class CourseAdd extends StatefulWidget {
   const CourseAdd({super.key});
