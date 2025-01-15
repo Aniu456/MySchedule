@@ -9,12 +9,14 @@ class CourseTable extends StatelessWidget {
     required this.week,
     this.showWeekend = false,
     this.showTimeSlots = false,
+    this.themeColor = Colors.teal,
   });
 
   //当前滑动的周数
   final int week; // 周数
   final bool showWeekend; // 是否显示周末
   final bool showTimeSlots; // 是否显示时间槽
+  final Color themeColor;
 
   /// 表头宽度  表头高度  格子宽度  格子高度
   late double titleWidth;
@@ -131,7 +133,11 @@ class CourseTable extends StatelessWidget {
             padding: const EdgeInsets.all(4),
             child: InkWell(
                 onTap: () {
-                  getCourseInfo(context, course);
+                  getCourseInfo(
+                    context,
+                    course,
+                    themeColor: themeColor,
+                  );
                 },
                 child: Center(
                   child: Column(
@@ -253,69 +259,89 @@ class CourseTable extends StatelessWidget {
     const weekName = ["一", "二", "三", "四", "五", "六", "日"];
     final list = <Widget>[];
 
-    // 计算当前显示的周次
     DateTime startOfWeek = calculateStartOfWeek(offset);
     int currentMonth = startOfWeek.month;
     DateTime today = DateTime.now();
 
-    // 表头左侧内容
+    // 表头左侧内容（月份）
     list.add(
       Container(
-        decoration: titleDecoration, // 使用表头装饰
-        width: titleWidth, // 设置表头宽度
-        height: titleHeight, // 增加高度以容纳日期和月份
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround, // 垂直居中排列
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                "$currentMonth",
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        decoration: titleDecoration,
+        width: titleWidth,
+        height: titleHeight,
+        child: Column(
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "$currentMonth",
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  const Text(
+                    '月',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                ],
               ),
-              const Text(
-                '月',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-            ],
-          ),
+            ),
+            Container(
+              height: 1,
+              color: Colors.grey[200],
+            ),
+          ],
         ),
       ),
     );
 
-    // 渲染周一到周日的标题，并在下面显示当前星期的日期
+    // 渲染周一到周日的标题
     for (int i = 1; i <= (showWeekend ? 7 : 5); i++) {
       DateTime day = startOfWeek.add(Duration(days: i - 1));
-      // bool isToday = (day.year == today.year &&
-      //     day.month == today.month &&
-      //     day.day == today.day);
       bool isToday = (day.month == today.month && day.day == today.day);
 
       list.add(
         Container(
-          alignment: Alignment.center, // 文本居中
-          decoration: titleDecoration, // 使用表头装饰
-          width: gridWidth, // 设置格子宽度
-          height: titleHeight, // 增加高度以容纳日期和星期
+          alignment: Alignment.center,
+          decoration: titleDecoration,
+          width: gridWidth,
+          height: titleHeight,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround, // 垂直居中排列
             children: [
-              Text(
-                weekName[i - 1],
-                style: TextStyle(
-                  fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 16.5,
-                  color: isToday ? Colors.red : Colors.grey[600], // 当前日期红色
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 1.0), // 减小星期的内边距
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text(
+                        weekName[i - 1],
+                        style: TextStyle(
+                          fontWeight:
+                              isToday ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 16.5,
+                          color: isToday ? Colors.red : Colors.grey[600],
+                        ),
+                      ),
+                      Text(
+                        "${day.month}/${day.day}",
+                        style: TextStyle(
+                          fontWeight:
+                              isToday ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 14,
+                          color: isToday ? Colors.red : Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              Text(
-                "${day.month}/${day.day}",
-                style: TextStyle(
-                  fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 14,
-                  color: isToday ? Colors.red : Colors.grey[600], // 当前日期红色
-                ),
+              Container(
+                height: 1,
+                color: Colors.grey[200],
               ),
             ],
           ),
@@ -323,9 +349,8 @@ class CourseTable extends StatelessWidget {
       );
     }
 
-    // 返回表头的Row组件
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 水平均匀分布
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: list,
     );
   }
@@ -341,63 +366,88 @@ class CourseTable extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          Column(
-            children: [
-              Text(
-                (row * 2 - 1).toString(),
-                style: const TextStyle(fontSize: 12),
-              ),
-              if (showTimeSlots)
-                Column(
-                  children: [
-                    Text(
-                      _timeSlots[row * 2 - 2][0], // 开始时间
-                      style: const TextStyle(
-                        fontSize: 9,
-                        color: Colors.grey,
-                      ),
-                      textAlign: TextAlign.center,
+          // 第一节课
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    (row * 2 - 1).toString(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  if (showTimeSlots) ...[
+                    const SizedBox(height: 2),
                     Text(
-                      _timeSlots[row * 2 - 2][1], // 结束时间
+                      _timeSlots[row * 2 - 2][0],
                       style: const TextStyle(
-                        fontSize: 9,
+                        fontSize: 11,
                         color: Colors.grey,
                       ),
-                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      _timeSlots[row * 2 - 2][1],
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey,
+                      ),
                     ),
                   ],
-                ),
-            ],
+                ],
+              ),
+            ),
           ),
-          Column(
-            children: [
-              Text(
-                (row * 2).toString(),
-                style: const TextStyle(fontSize: 12),
-              ),
-              if (showTimeSlots)
-                Column(
-                  children: [
-                    Text(
-                      _timeSlots[row * 2 - 1][0], // 开始时间
-                      style: const TextStyle(
-                        fontSize: 9,
-                        color: Colors.grey,
-                      ),
-                      textAlign: TextAlign.center,
+          // 第二节课
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          (row * 2).toString(),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (showTimeSlots) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            _timeSlots[row * 2 - 1][0],
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            _timeSlots[row * 2 - 1][1],
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                    Text(
-                      _timeSlots[row * 2 - 1][1], // 结束时间
-                      style: const TextStyle(
-                        fontSize: 9,
-                        color: Colors.grey,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                  ),
                 ),
-            ],
+                // 在偶数节课下面添加横线
+                Container(
+                  height: 1,
+                  color: Colors.grey[200],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -405,12 +455,11 @@ class CourseTable extends StatelessWidget {
 
     // 渲染一周的每一列
     for (int col = 1; col <= (showWeekend ? 7 : 5); col++) {
-      list.add(_renderGrid(context, row, col)); // 渲染每个格子
+      list.add(_renderGrid(context, row, col));
     }
 
-    // 返回渲染行的Row组件
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround, // 水平均匀分布
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: list,
     );
   }

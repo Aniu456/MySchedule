@@ -11,11 +11,13 @@ class SlideTable extends StatefulWidget {
     this.offset = 1,
     required this.showWeekend,
     required this.showTimeSlots,
+    this.themeColor = Colors.teal,
   }) : pageController = PageController(initialPage: offset - 1);
   final ValueChanged<int> onWeekChange; // 当前周改变时的回调函数
   final int offset; // 显示的起始周数
   bool showWeekend; // 是否显示周末
   bool showTimeSlots;
+  final Color themeColor;
   final PageController pageController; // 页面控制器，用于控制PageView的滑动
 
   @override
@@ -58,7 +60,7 @@ class _SlideTableState extends State<SlideTable> {
   void _checkDateAndShowDialog(BuildContext context) {
     DateTime now = DateTime.now();
     DateTime semesterEnd =
-        calculateStartOfWeek(20).add(const Duration(days: 6));
+        calculateStartOfWeek(19).add(const Duration(days: 6));
 
     if (now.isAfter(semesterEnd)) {
       showDialog(
@@ -108,12 +110,13 @@ class _SlideTableState extends State<SlideTable> {
   Widget build(BuildContext context) {
     // 打印重建信息，有助于调试
     final List<Widget> list = []; // 创建一个Widget列表，用于存储课程表页面
-    for (int i = 1; i < 21; i++) {
+    for (int i = 1; i <= 19; i++) {
       list.add(CourseTable(
         // 为每个周次添加一个课程表页面
         week: i,
         showWeekend: widget.showWeekend, // 使用widget.showWeekend
         showTimeSlots: widget.showTimeSlots,
+        themeColor: widget.themeColor,
       ));
     }
 

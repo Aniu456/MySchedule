@@ -217,7 +217,7 @@ class _CourseAddState extends State<CourseAdd> {
           Wrap(
             spacing: 8.0,
             runSpacing: 8.0,
-            children: List.generate(20, (index) {
+            children: List.generate(19, (index) {
               final weekNumber = index + 1;
               return GestureDetector(
                 onTap: () {
@@ -454,7 +454,7 @@ class _CourseAddState extends State<CourseAdd> {
 
   // 浮动按钮构建方法
   Widget _buildFloatingActionButton() {
-    return FloatingActionButton(  
+    return FloatingActionButton(
       onPressed: () => setState(() => _times.add([])),
       tooltip: '添加上课时间',
       backgroundColor: Colors.white,

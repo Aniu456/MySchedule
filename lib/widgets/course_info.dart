@@ -32,7 +32,8 @@ String getWeeks(List<int> weeks) {
 
 // ... 保持 getWeeks() 函数不变 ...
 
-void getCourseInfo(BuildContext context, Map<String, dynamic> course) {
+void getCourseInfo(BuildContext context, Map<String, dynamic> course,
+    {Color themeColor = Colors.teal}) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -48,28 +49,31 @@ void getCourseInfo(BuildContext context, Map<String, dynamic> course) {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     "课程详情",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: themeColor,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(Icons.close, color: themeColor),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
               const Divider(),
-              _buildInfoRow(Icons.book, "课程名称", course['courseName']),
-              const SizedBox(height: 12),
-              _buildInfoRow(Icons.person, "教师", course['teacherName']),
+              _buildInfoRow(
+                  Icons.book, "课程名称", course['courseName'], themeColor),
               const SizedBox(height: 12),
               _buildInfoRow(
-                  Icons.calendar_today, "上课周次", getWeeks(course['weeks'])),
+                  Icons.person, "教师", course['teacherName'], themeColor),
               const SizedBox(height: 12),
-              _buildInfoRow(Icons.note, "课程备注", course['remarks']),
+              _buildInfoRow(Icons.calendar_today, "上课周次",
+                  getWeeks(course['weeks']), themeColor),
+              const SizedBox(height: 12),
+              _buildInfoRow(Icons.note, "课程备注", course['remarks'], themeColor),
             ],
           ),
         ),
@@ -78,11 +82,12 @@ void getCourseInfo(BuildContext context, Map<String, dynamic> course) {
   );
 }
 
-Widget _buildInfoRow(IconData icon, String label, String value) {
+Widget _buildInfoRow(
+    IconData icon, String label, String value, Color themeColor) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
-      Icon(icon, color: Colors.teal, size: 24),
+      Icon(icon, color: themeColor, size: 24),
       const SizedBox(width: 12),
       Expanded(
         child: Column(
@@ -90,8 +95,8 @@ Widget _buildInfoRow(IconData icon, String label, String value) {
           children: [
             Text(
               label,
-              style: const TextStyle(
-                color: Colors.grey,
+              style: TextStyle(
+                color: themeColor.withOpacity(0.7),
                 fontSize: 12,
               ),
             ),
