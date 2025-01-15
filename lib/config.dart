@@ -1,1 +1,0 @@
-// const weekIndex = "/wi.txt";
