@@ -42,16 +42,5 @@ class WeekIndex {
       minutes: date.minute, // 将分钟归零
       seconds: date.second, // 将秒归零
     ));
-
-    // 获取存储周索引的文件路径
-    // final dir = (await getApplicationDocumentsDirectory()).path + weekIndex;
-    // File file = File(dir);
-    // try {
-    //   await file.writeAsString(date.toString()); // 将日期写入文件
-    // } catch (e) {
-    //   print(e); // 捕获并打印错误
-    // }
   }
-
-  // _getWeekIndex() {}
 }

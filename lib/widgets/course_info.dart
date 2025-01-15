@@ -30,50 +30,79 @@ String getWeeks(List<int> weeks) {
   return weekRanges.join(', ');
 }
 
+// ... 保持 getWeeks() 函数不变 ...
+
 void getCourseInfo(BuildContext context, Map<String, dynamic> course) {
   showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0)),
-            child: SizedBox(
-                height:
-                    MediaQuery.of(context).size.height * 0.3, // 设置高度为屏幕高度的30%
-                child: AlertDialog(
-                    insetPadding: EdgeInsets.zero,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 15),
-                    content: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Row(children: [
-                            const Icon(Icons.book, color: Colors.teal),
-                            const SizedBox(width: 10),
-                            Text("课程名称：${course['courseName']}",
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold))
-                          ]),
-                          Row(children: [
-                            const Icon(Icons.person, color: Colors.lightBlue),
-                            const SizedBox(width: 10),
-                            Text("教师：${course['teacherName']}",
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold))
-                          ]),
-                          Row(children: [
-                            const Icon(Icons.calendar_today),
-                            const SizedBox(width: 10),
-                            Text("上课周次：${getWeeks(course['weeks'])}",
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold))
-                          ]),
-                          Row(children: [
-                            const Icon(Icons.book, color: Colors.amber),
-                            const SizedBox(width: 10),
-                            Text("课程备注：${course['remarks']}",
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold))
-                          ])
-                        ]))));
-      });
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          width: MediaQuery.of(context).size.width * 0.85,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "课程详情",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const Divider(),
+              _buildInfoRow(Icons.book, "课程名称", course['courseName']),
+              const SizedBox(height: 12),
+              _buildInfoRow(Icons.person, "教师", course['teacherName']),
+              const SizedBox(height: 12),
+              _buildInfoRow(
+                  Icons.calendar_today, "上课周次", getWeeks(course['weeks'])),
+              const SizedBox(height: 12),
+              _buildInfoRow(Icons.note, "课程备注", course['remarks']),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Widget _buildInfoRow(IconData icon, String label, String value) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Icon(icon, color: Colors.teal, size: 24),
+      const SizedBox(width: 12),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 }
