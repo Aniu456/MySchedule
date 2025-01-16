@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:schedule/utils/time_utils.dart';
 import 'course_info.dart';
 
 class CourseTable extends StatelessWidget {
@@ -284,7 +285,8 @@ class CourseTable extends StatelessWidget {
 
                         return course['times'].any((time) {
                           if (time is! List || time.length < 3) return false;
-                          final dayNum = _dayToNumber(time[0].toString());
+                          final dayNum =
+                              TimeUtils.getDayValue(time[0].toString());
                           return dayNum == col + 1;
                         });
                       }).toList();
@@ -331,10 +333,14 @@ class CourseTable extends StatelessWidget {
       for (var course in columnCourses) {
         var time = course['times'].firstWhere((time) {
           if (time is! List || time.length < 3) return false;
-          if (_dayToNumber(time[0].toString()) != col + 1) return false;
+          if (TimeUtils.getDayValue(time[0].toString()) != col + 1)
+            return false;
 
-          int startClass = _classToNumber(time[1].toString());
-          int endClass = _classToNumber(time[2].toString());
+          int startClass = TimeUtils.getClassValue(time[1].toString());
+          int endClass = TimeUtils.getClassValue(time[2].toString());
+
+          if (!TimeUtils.isValidTimeRange(startClass, endClass)) return false;
+
           return row + 1 >= startClass && row + 1 <= endClass;
         }, orElse: () => List<dynamic>.empty());
 
@@ -346,8 +352,8 @@ class CourseTable extends StatelessWidget {
       }
 
       if (courseForThisSlot != null && courseTime != null) {
-        int startClass = _classToNumber(courseTime[1].toString());
-        int endClass = _classToNumber(courseTime[2].toString());
+        int startClass = TimeUtils.getClassValue(courseTime[1].toString());
+        int endClass = TimeUtils.getClassValue(courseTime[2].toString());
         int duration = endClass - startClass + 1;
 
         // 标记被占用的时间段
@@ -385,42 +391,10 @@ class CourseTable extends StatelessWidget {
 
   int _getStartTime(List<dynamic> times, int col) {
     var time = times.firstWhere(
-      (time) => _dayToNumber(time[0].toString()) == col + 1,
-      orElse: () => null,
+      (time) => TimeUtils.getDayValue(time[0].toString()) == col + 1,
+      orElse: () => List<dynamic>.empty(),
     );
-    if (time == null) return 999;
-    return _classToNumber(time[1].toString());
-  }
-
-  int _dayToNumber(String day) {
-    const days = {
-      '周一': 1,
-      '周二': 2,
-      '周三': 3,
-      '周四': 4,
-      '周五': 5,
-      '周六': 6,
-      '周日': 7
-    };
-    return days[day] ?? 0;
-  }
-
-  int _classToNumber(String classTime) {
-    if (int.tryParse(classTime) != null) {
-      return int.parse(classTime);
-    }
-    const classes = {
-      '第一节': 1,
-      '第二节': 2,
-      '第三节': 3,
-      '第四节': 4,
-      '第五节': 5,
-      '第六节': 6,
-      '第七节': 7,
-      '第八节': 8,
-      '第九节': 9,
-      '第十节': 10,
-    };
-    return classes[classTime] ?? 0;
+    if (time is! List || time.isEmpty) return 999;
+    return TimeUtils.getClassValue(time[1].toString());
   }
 }

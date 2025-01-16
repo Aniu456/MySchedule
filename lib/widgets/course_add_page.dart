@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:schedule/utils/time_utils.dart';
 import 'course_add/course_add_form.dart';
 import 'course_add/time_picker.dart';
 import 'course_add/week_picker.dart';
@@ -57,27 +58,42 @@ class _CourseAddState extends State<CourseAdd> {
   }
 
   void _addTime(String day, int start, int end) {
-    _times.removeWhere((time) => time.isEmpty);
-
-    bool hasConflict = false;
-    for (var time in _times) {
-      if (time[0] == day) {
-        int existingStart = int.parse(time[1].toString());
-        int existingEnd = int.parse(time[2].toString());
-        if (!(end < existingStart || start > existingEnd)) {
-          hasConflict = true;
-          break;
-        }
-      }
+    if (!TimeUtils.isValidTimeRange(start, end)) {
+      _showMessage('无效的时间范围');
+      return;
     }
 
-    if (hasConflict) {
+    // 移除空的时间段
+    _times = _times.where((time) => time.isNotEmpty).toList();
+
+    // 检查时间冲突
+    final newTime = [
+      day,
+      TimeUtils.getClassString(start),
+      TimeUtils.getClassString(end)
+    ];
+    if (TimeUtils.hasTimeConflict(_times, _weeks, [newTime], _weeks)) {
       _showMessage('该时间段与已选时间重叠');
       return;
     }
 
     setState(() {
-      _times.add([day, start.toString(), end.toString()]);
+      // 添加新时间
+      List<List<dynamic>> newTimes = List.from(_times)..add(newTime);
+
+      // 按星期和时间排序
+      newTimes.sort((a, b) {
+        if (a.isEmpty || b.isEmpty) return 0;
+        // 先按星期排序
+        int dayCompare = TimeUtils.getDayValue(a[0].toString())
+            .compareTo(TimeUtils.getDayValue(b[0].toString()));
+        if (dayCompare != 0) return dayCompare;
+        // 再按开始时间排序
+        return TimeUtils.getClassValue(a[1].toString())
+            .compareTo(TimeUtils.getClassValue(b[1].toString()));
+      });
+
+      _times = newTimes;
     });
   }
 
@@ -164,30 +180,16 @@ class _CourseAddState extends State<CourseAdd> {
       return;
     }
 
-    bool hasConflict = false;
+    // 检查与已有课程的时间冲突
     for (var existingCourse in _courses) {
-      List<List<dynamic>> existingTimes =
-          List<List<dynamic>>.from(existingCourse['times']);
-      List<int> existingWeeks = List<int>.from(existingCourse['weeks']);
-
-      bool hasWeekOverlap = existingWeeks.any((week) => _weeks.contains(week));
-      if (!hasWeekOverlap) continue;
-
-      for (var existingTime in existingTimes) {
-        for (var newTime in validTimes) {
-          if (existingTime[0] == newTime[0]) {
-            int existingStart = int.parse(existingTime[1].toString());
-            int existingEnd = int.parse(existingTime[2].toString());
-            int newStart = int.parse(newTime[1].toString());
-            int newEnd = int.parse(newTime[2].toString());
-
-            if (!(newEnd < existingStart || newStart > existingEnd)) {
-              hasConflict = true;
-              _showMessage('与已添加的 ${existingCourse['courseName']} 课程时间冲突');
-              return;
-            }
-          }
-        }
+      if (TimeUtils.hasTimeConflict(
+        List<List<dynamic>>.from(existingCourse['times']),
+        List<int>.from(existingCourse['weeks']),
+        validTimes,
+        _weeks,
+      )) {
+        _showMessage('与已添加的 ${existingCourse['courseName']} 课程时间冲突');
+        return;
       }
     }
 
@@ -217,48 +219,6 @@ class _CourseAddState extends State<CourseAdd> {
     _currentColor = Colors.primaries[_courses.length % Colors.primaries.length];
     _times = [[]];
     _weeks = [];
-  }
-
-  bool _checkTimeConflict(
-    List<List<dynamic>> existingTimes,
-    List<int> existingWeeks,
-    List<List<dynamic>> newTimes,
-    List<int> newWeeks,
-  ) {
-    // 首先检查周次是否有重叠
-    bool hasWeekOverlap = false;
-    for (var week in existingWeeks) {
-      if (newWeeks.contains(week)) {
-        hasWeekOverlap = true;
-        break;
-      }
-    }
-    if (!hasWeekOverlap) return false;
-
-    // 检查时间是否有重叠
-    for (var existingTime in existingTimes) {
-      if (existingTime.isEmpty) continue;
-
-      for (var newTime in newTimes) {
-        if (newTime.isEmpty) continue;
-
-        // 如果不是同一天，继续检查下一个时间
-        if (existingTime[0] != newTime[0]) continue;
-
-        // 转换时间为整数进行比较
-        int existingStart = int.parse(existingTime[1].toString());
-        int existingEnd = int.parse(existingTime[2].toString());
-        int newStart = int.parse(newTime[1].toString());
-        int newEnd = int.parse(newTime[2].toString());
-
-        // 检查时间是否重叠
-        if (!(newEnd < existingStart || newStart > existingEnd)) {
-          return true; // 发现时间重叠
-        }
-      }
-    }
-
-    return false; // 没有发现时间重叠
   }
 
   void _finishAndReturn() {
