@@ -5,29 +5,29 @@ import 'course_table.dart';
 /// [onWeekChange] 当前周改变时的回调函数，影响顶部导航栏显示
 /// [offset] 为显示的起始周数，默认为1
 class SlideTable extends StatefulWidget {
-  final Function(int) onWeekChange;
-  final Function(int) onSemesterChange;
+  final int initialWeek;
   final int currentSemester;
-  final int offset;
   final bool showWeekend;
   final bool showTimeSlots;
   final bool showGrid;
   final Color themeColor;
   final List<Map<String, dynamic>> courses;
-  final PageController? controller;
+  final Function(Map<String, dynamic>) onCourseUpdated;
+  final Function(Map<String, dynamic>) onCourseDeleted;
+  final Function(int) onWeekChange;
 
   const SlideTable({
     super.key,
-    required this.onWeekChange,
-    required this.onSemesterChange,
+    required this.initialWeek,
     required this.currentSemester,
-    required this.offset,
-    required this.showWeekend,
-    required this.showTimeSlots,
-    required this.showGrid,
-    required this.themeColor,
+    this.showWeekend = false,
+    this.showTimeSlots = false,
+    this.showGrid = true,
+    this.themeColor = Colors.teal,
     required this.courses,
-    this.controller,
+    required this.onCourseUpdated,
+    required this.onCourseDeleted,
+    required this.onWeekChange,
   });
 
   @override
@@ -36,50 +36,39 @@ class SlideTable extends StatefulWidget {
 
 class _SlideTableState extends State<SlideTable> {
   late PageController _pageController;
+  late int _currentWeek;
 
   @override
   void initState() {
     super.initState();
-    _pageController = widget.controller ??
-        PageController(
-          initialPage: widget.offset - 1,
-          viewportFraction: 1.0,
-          keepPage: true,
-        );
-  }
-
-  @override
-  void didUpdateWidget(SlideTable oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller &&
-        widget.controller != null) {
-      _pageController = widget.controller!;
-    }
-    if (oldWidget.offset != widget.offset) {
-      _pageController.jumpToPage(widget.offset - 1);
-    }
+    _currentWeek = widget.initialWeek;
+    _pageController = PageController(
+      initialPage: _currentWeek - 1,
+      viewportFraction: 1.0,
+    );
   }
 
   @override
   void dispose() {
-    if (widget.controller == null) {
-      _pageController.dispose();
-    }
+    _pageController.dispose();
     super.dispose();
-  }
-
-  void jumpToWeek(int week) {
-    _pageController.jumpToPage(week - 1);
   }
 
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
       controller: _pageController,
-      onPageChanged: (index) => widget.onWeekChange(index + 1),
+      onPageChanged: (index) {
+        setState(() {
+          _currentWeek = index + 1;
+        });
+        widget.onWeekChange(_currentWeek);
+      },
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: 20,
       itemBuilder: (context, index) {
         return CourseTable(
+          key: ValueKey('week_$index'),
           week: index + 1,
           currentSemester: widget.currentSemester,
           showWeekend: widget.showWeekend,
@@ -87,6 +76,8 @@ class _SlideTableState extends State<SlideTable> {
           showGrid: widget.showGrid,
           themeColor: widget.themeColor,
           courses: widget.courses,
+          onCourseUpdated: widget.onCourseUpdated,
+          onCourseDeleted: widget.onCourseDeleted,
         );
       },
     );

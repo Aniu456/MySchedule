@@ -265,16 +265,33 @@ class _MainPageState extends State<MainPage>
           showWeekend: _showWeekend,
         ),
         body: SlideTable(
-          controller: _pageController,
-          onWeekChange: (week) => setState(() => _week = week),
-          onSemesterChange: _handleSemesterChange,
+          initialWeek: _week,
           currentSemester: _currentSemester,
-          offset: _week,
           showWeekend: _showWeekend,
           showTimeSlots: _showTimeSlots,
           showGrid: _showGrid,
           themeColor: _themeColor,
           courses: courses,
+          onCourseUpdated: (updatedCourse) async {
+            setState(() {
+              final index = courses.indexWhere((c) =>
+                  c['courseName'] == updatedCourse['courseName'] &&
+                  c['semester'] == updatedCourse['semester']);
+              if (index != -1) {
+                courses[index] = updatedCourse;
+              }
+            });
+            await CourseStorage.saveCourses(courses);
+          },
+          onCourseDeleted: (course) async {
+            setState(() {
+              courses.removeWhere((c) =>
+                  c['courseName'] == course['courseName'] &&
+                  c['semester'] == course['semester']);
+            });
+            await CourseStorage.saveCourses(courses);
+          },
+          onWeekChange: (week) => setState(() => _week = week),
         ),
         floatingActionButton: FloatingMenu(
           isMenuOpen: _isMenuOpen,

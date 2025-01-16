@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:schedule/utils/time_utils.dart';
+import '../utils/time_utils.dart';
 import 'course_info.dart';
 
 class CourseTable extends StatelessWidget {
@@ -12,6 +12,8 @@ class CourseTable extends StatelessWidget {
     this.showGrid = true,
     this.themeColor = Colors.teal,
     required this.courses,
+    required this.onCourseUpdated,
+    required this.onCourseDeleted,
   });
 
   final int week;
@@ -21,6 +23,8 @@ class CourseTable extends StatelessWidget {
   final bool showGrid;
   final Color themeColor;
   final List<Map<String, dynamic>> courses;
+  final Function(Map<String, dynamic>) onCourseUpdated;
+  final Function(Map<String, dynamic>) onCourseDeleted;
 
   static const List<List<String>> _timeSlots = [
     ["8:20", "9:05"],
@@ -177,7 +181,13 @@ class CourseTable extends StatelessWidget {
         ],
       ),
       child: InkWell(
-        onTap: () => getCourseInfo(context, course, themeColor: themeColor),
+        onTap: () => showCourseInfo(
+          context,
+          course,
+          themeColor: themeColor,
+          onCourseUpdated: onCourseUpdated,
+          onCourseDeleted: onCourseDeleted,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
