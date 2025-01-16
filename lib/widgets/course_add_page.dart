@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:schedule/utils/time_utils.dart';
+import '../utils/time_utils.dart';
 import 'course_add/course_add_form.dart';
 import 'course_add/time_picker.dart';
 import 'course_add/week_picker.dart';
 import 'course_add/semester_picker.dart';
 import 'course_add/course_list.dart';
 
+/// 课程添加页面
+/// 用于添加新的课程，包含课程基本信息、上课时间、上课周次等设置
 class CourseAdd extends StatefulWidget {
+  /// 当前学期
   final int currentSemester;
+
+  /// 主题颜色
   final Color themeColor;
 
   const CourseAdd({
@@ -22,23 +27,34 @@ class CourseAdd extends StatefulWidget {
 }
 
 class _CourseAddState extends State<CourseAdd> {
+  /// 表单相关控制器
   final _formKey = GlobalKey<FormState>();
   final _courseFocusNode = FocusNode();
   final _teacherFocusNode = FocusNode();
   final _remarksFocusNode = FocusNode();
+
+  /// 已添加的课程列表
   final List<Map<String, dynamic>> _courses = [];
 
-  String _courseName = '';
-  String _teacherName = '';
-  String _remarks = '';
-  Color _currentColor = Colors.blue;
-  List<List<dynamic>> _times = [[]];
-  List<int> _weeks = [];
+  /// 课程基本信息
+  late String _courseName = '';
+  late String _teacherName = '';
+  late String _remarks = '';
+  late Color _currentColor;
   late int _semester;
+
+  /// 课程时间和周次
+  late List<List<dynamic>> _times = [[]];
+  late List<int> _weeks = [];
 
   @override
   void initState() {
     super.initState();
+    _initializeData();
+  }
+
+  /// 初始化数据
+  void _initializeData() {
     _currentColor = widget.themeColor;
     _semester = widget.currentSemester;
   }
@@ -51,12 +67,14 @@ class _CourseAddState extends State<CourseAdd> {
     super.dispose();
   }
 
+  /// 取消所有输入框焦点
   void _unfocusAll() {
     _courseFocusNode.unfocus();
     _teacherFocusNode.unfocus();
     _remarksFocusNode.unfocus();
   }
 
+  /// 添加课程时间
   void _addTime(String day, int start, int end) {
     if (!TimeUtils.isValidTimeRange(start, end)) {
       _showMessage('无效的时间范围');
@@ -66,34 +84,29 @@ class _CourseAddState extends State<CourseAdd> {
     // 移除空的时间段
     _times = _times.where((time) => time.isNotEmpty).toList();
 
-    // 检查新时间段是否与已有时间段重叠
-    for (var existingTime in _times) {
-      if (existingTime[0] == day) {
-        // 同一天的课程
-        int existingStart = TimeUtils.getClassValue(existingTime[1].toString());
-        int existingEnd = TimeUtils.getClassValue(existingTime[2].toString());
-
-        // 检查时间段是否重叠
-        if (!(end < existingStart || start > existingEnd)) {
-          _showMessage('该时间段与已选时间重叠');
-          return;
-        }
-      }
+    // 检查时间冲突
+    if (TimeUtils.hasTimeConflict(
+      _times,
+      _weeks,
+      [
+        [day, start.toString(), end.toString()]
+      ],
+      _weeks,
+    )) {
+      _showMessage('该时间段与已选时间重叠');
+      return;
     }
 
     setState(() {
-      // 添加新时间
       List<List<dynamic>> newTimes = List.from(_times)
         ..add([day, start.toString(), end.toString()]);
 
       // 按星期和时间排序
       newTimes.sort((a, b) {
         if (a.isEmpty || b.isEmpty) return 0;
-        // 先按星期排序
         int dayCompare = TimeUtils.getDayValue(a[0].toString())
             .compareTo(TimeUtils.getDayValue(b[0].toString()));
         if (dayCompare != 0) return dayCompare;
-        // 再按开始时间排序
         return TimeUtils.getClassValue(a[1].toString())
             .compareTo(TimeUtils.getClassValue(b[1].toString()));
       });
@@ -102,6 +115,7 @@ class _CourseAddState extends State<CourseAdd> {
     });
   }
 
+  /// 显示时间选择对话框
   void _showTimePickerDialog() {
     _unfocusAll();
     showDialog(
@@ -112,6 +126,7 @@ class _CourseAddState extends State<CourseAdd> {
     );
   }
 
+  /// 显示周次选择对话框
   void _showWeekPickerDialog() {
     _unfocusAll();
     showDialog(
@@ -124,6 +139,7 @@ class _CourseAddState extends State<CourseAdd> {
     );
   }
 
+  /// 显示颜色选择器
   void _showColorPicker() {
     _unfocusAll();
     showDialog(
@@ -151,6 +167,7 @@ class _CourseAddState extends State<CourseAdd> {
     );
   }
 
+  /// 显示学期选择对话框
   void _showSemesterPickerDialog() {
     showDialog(
       context: context,
@@ -161,6 +178,7 @@ class _CourseAddState extends State<CourseAdd> {
     );
   }
 
+  /// 保存课程表单
   void _saveForm() {
     if (!_formKey.currentState!.validate()) {
       _showMessage('请填写必要信息');
@@ -216,6 +234,7 @@ class _CourseAddState extends State<CourseAdd> {
     _showMessage('${courseData['courseName']} 添加成功', isError: false);
   }
 
+  /// 重置表单
   void _resetForm() {
     _formKey.currentState!.reset();
     _courseName = '';
@@ -226,6 +245,7 @@ class _CourseAddState extends State<CourseAdd> {
     _weeks = [];
   }
 
+  /// 完成添加并返回
   void _finishAndReturn() {
     if (_courses.isEmpty) {
       Navigator.pop(context);
@@ -234,6 +254,7 @@ class _CourseAddState extends State<CourseAdd> {
     }
   }
 
+  /// 显示提示消息
   void _showMessage(String message, {bool isError = true}) {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
@@ -258,6 +279,7 @@ class _CourseAddState extends State<CourseAdd> {
     );
   }
 
+  /// 构建卡片组件
   Widget _buildCard({
     required String title,
     required IconData icon,

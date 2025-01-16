@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:schedule/widgets/main_pages.dart';
 
-void main() async {
-  // 运行应用
-  return runApp(const MyApp());
+/// 应用程序入口
+void main() {
+  runApp(const MyApp());
 }
 
-// 自定义的 MyApp 类，继承自 StatelessWidgete
+/// 应用程序根组件
+/// 配置应用的主题和全局设置
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 

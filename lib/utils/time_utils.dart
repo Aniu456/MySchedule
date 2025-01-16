@@ -1,4 +1,7 @@
+/// 时间工具类
+/// 提供课程时间相关的转换、验证和格式化功能
 class TimeUtils {
+  /// 星期转换映射（中文 -> 数字）
   static const Map<String, int> dayToNumber = {
     '周一': 1,
     '周二': 2,
@@ -9,6 +12,7 @@ class TimeUtils {
     '周日': 7,
   };
 
+  /// 星期转换映射（数字 -> 中文）
   static const Map<int, String> numberToDay = {
     1: '周一',
     2: '周二',
@@ -19,6 +23,7 @@ class TimeUtils {
     7: '周日',
   };
 
+  /// 节次转换映射（中文 -> 数字）
   static const Map<String, int> classToNumber = {
     '第一节': 1,
     '第二节': 2,
@@ -32,6 +37,7 @@ class TimeUtils {
     '第十节': 10,
   };
 
+  /// 节次转换映射（数字 -> 中文）
   static const Map<int, String> numberToClass = {
     1: '第一节',
     2: '第二节',
@@ -45,29 +51,40 @@ class TimeUtils {
     10: '第十节',
   };
 
-  static int getDayValue(String day) {
-    return dayToNumber[day] ?? 0;
-  }
+  /// 将星期字符串转换为数字
+  /// 例如：'周一' -> 1
+  static int getDayValue(String day) => dayToNumber[day] ?? 0;
 
-  static String getDayString(int number) {
-    return numberToDay[number] ?? '';
-  }
+  /// 将数字转换为星期字符串
+  /// 例如：1 -> '周一'
+  static String getDayString(int number) => numberToDay[number] ?? '';
 
+  /// 将节次字符串转换为数字
+  /// 支持直接数字字符串和中文格式
+  /// 例如：'第一节' -> 1, '1' -> 1
   static int getClassValue(String classTime) {
-    if (int.tryParse(classTime) != null) {
-      return int.parse(classTime);
-    }
+    final number = int.tryParse(classTime);
+    if (number != null) return number;
     return classToNumber[classTime] ?? 0;
   }
 
-  static String getClassString(int number) {
-    return numberToClass[number] ?? '';
-  }
+  /// 将数字转换为节次字符串
+  /// 例如：1 -> '第一节'
+  static String getClassString(int number) => numberToClass[number] ?? '';
 
-  static bool isValidTimeRange(int start, int end) {
-    return start > 0 && end > 0 && start <= end && end <= 10;
-  }
+  /// 检查时间范围是否有效
+  /// [start]: 开始节次（1-10）
+  /// [end]: 结束节次（1-10）
+  /// 返回：时间范围是否有效
+  static bool isValidTimeRange(int start, int end) =>
+      start > 0 && end > 0 && start <= end && end <= 10;
 
+  /// 检查两个时间段是否存在冲突
+  /// [existingTimes]: 已有的时间段列表
+  /// [existingWeeks]: 已有的周次列表
+  /// [newTimes]: 新的时间段列表
+  /// [newWeeks]: 新的周次列表
+  /// 返回：是否存在时间冲突
   static bool hasTimeConflict(
     List<List<dynamic>> existingTimes,
     List<int> existingWeeks,
@@ -75,8 +92,7 @@ class TimeUtils {
     List<int> newWeeks,
   ) {
     // 检查周次是否有重叠
-    bool hasWeekOverlap = existingWeeks.any((week) => newWeeks.contains(week));
-    if (!hasWeekOverlap) return false;
+    if (!existingWeeks.any((week) => newWeeks.contains(week))) return false;
 
     // 检查时间是否有重叠
     for (var existingTime in existingTimes) {
@@ -92,10 +108,10 @@ class TimeUtils {
         }
 
         // 转换时间为整数进行比较
-        int existingStart = getClassValue(existingTime[1].toString());
-        int existingEnd = getClassValue(existingTime[2].toString());
-        int newStart = getClassValue(newTime[1].toString());
-        int newEnd = getClassValue(newTime[2].toString());
+        final existingStart = getClassValue(existingTime[1].toString());
+        final existingEnd = getClassValue(existingTime[2].toString());
+        final newStart = getClassValue(newTime[1].toString());
+        final newEnd = getClassValue(newTime[2].toString());
 
         // 检查时间是否有效
         if (!isValidTimeRange(existingStart, existingEnd) ||
@@ -113,6 +129,9 @@ class TimeUtils {
     return false;
   }
 
+  /// 格式化时间范围显示
+  /// 输入格式：['周一', '1', '2'] 或 ['周一', '第一节', '第二节']
+  /// 输出格式：'周一 1-2节'
   static String formatTimeRange(List<dynamic> time) {
     if (time.length < 3) return '';
 

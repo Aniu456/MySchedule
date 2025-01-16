@@ -8,7 +8,11 @@ import 'package:schedule/widgets/main_page/week_manager.dart';
 import '../utils/course_storage.dart';
 
 /// 主页面组件
-/// 负责显示课程表和处理用户交互
+/// 负责显示课程表和处理用户交互，包括：
+/// - 课程的显示和管理
+/// - 周次的切换和显示
+/// - 主题颜色的设置
+/// - 显示选项的控制（周末、时间段、网格）
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -18,15 +22,22 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage>
     with SingleTickerProviderStateMixin {
+  // 周次相关
   late int _week;
   late int _curWeek;
+
+  // 显示选项
   bool _showWeekend = false;
   bool _showTimeSlots = false;
   bool _showGrid = true;
   bool _isMenuOpen = false;
+
+  // 主题和课程数据
   Color _themeColor = Colors.teal;
   List<Map<String, dynamic>> courses = <Map<String, dynamic>>[];
   int _currentSemester = 1;
+
+  // 控制器
   late AnimationController _animationController;
   late PageController _pageController;
 
@@ -40,6 +51,7 @@ class _MainPageState extends State<MainPage>
     _initializePageController();
   }
 
+  /// 初始化动画控制器
   void _initializeAnimation() {
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -47,6 +59,7 @@ class _MainPageState extends State<MainPage>
     );
   }
 
+  /// 初始化页面控制器
   void _initializePageController() {
     _pageController = PageController(
       initialPage: _week - 1,
@@ -62,11 +75,13 @@ class _MainPageState extends State<MainPage>
     super.dispose();
   }
 
+  /// 初始化周次
   void _initializeWeeks() {
     _curWeek = WeekManager.calculateCurrentWeek();
     _week = _curWeek;
   }
 
+  /// 关闭浮动菜单
   void _closeMenu() {
     if (_isMenuOpen) {
       setState(() {
@@ -76,6 +91,7 @@ class _MainPageState extends State<MainPage>
     }
   }
 
+  /// 处理添加课程
   Future<void> _onAddButtonPressed(BuildContext context) async {
     _closeMenu();
     final newCourses = await Navigator.of(context).push(
@@ -101,6 +117,7 @@ class _MainPageState extends State<MainPage>
     }
   }
 
+  /// 显示消息提示
   void _showMessage(String message, {bool isError = true}) {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
@@ -125,6 +142,7 @@ class _MainPageState extends State<MainPage>
     );
   }
 
+  /// 显示颜色选择器
   void _showColorPicker() {
     showDialog(
       context: context,
@@ -145,6 +163,7 @@ class _MainPageState extends State<MainPage>
     );
   }
 
+  /// 显示删除确认对话框
   void _showDeleteConfirmation() {
     showDialog(
       context: context,
@@ -172,11 +191,13 @@ class _MainPageState extends State<MainPage>
     );
   }
 
+  /// 删除所有课程
   Future<void> _deleteCourses() async {
     await CourseStorage.deleteCourses();
     setState(() => courses.clear());
   }
 
+  /// 加载课程数据
   Future<void> _loadCourses() async {
     try {
       final loadedCourses = await CourseStorage.getCourses();
@@ -205,16 +226,19 @@ class _MainPageState extends State<MainPage>
     }
   }
 
+  /// 加载学期数据
   Future<void> _loadSemester() async {
     final semester = await CourseStorage.getSemester();
     setState(() => _currentSemester = semester);
   }
 
+  /// 处理学期变更
   void _handleSemesterChange(int semester) async {
     setState(() => _currentSemester = semester);
     await CourseStorage.saveSemester(semester);
   }
 
+  /// 显示学期选择对话框
   void _showSemesterPicker() {
     showDialog(
       context: context,
@@ -242,6 +266,7 @@ class _MainPageState extends State<MainPage>
     );
   }
 
+  /// 返回当前周
   void _handleGoBack() {
     _pageController.jumpToPage(_curWeek - 1);
     setState(() {
