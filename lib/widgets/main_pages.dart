@@ -48,7 +48,6 @@ class _MainPageState extends State<MainPage>
     _loadCourses();
     _loadSemester();
     _initializeAnimation();
-    _initializePageController();
   }
 
   /// 初始化动画控制器
@@ -57,10 +56,6 @@ class _MainPageState extends State<MainPage>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-  }
-
-  /// 初始化页面控制器
-  void _initializePageController() {
     _pageController = PageController(
       initialPage: _week - 1,
       viewportFraction: 1.0,
@@ -77,8 +72,10 @@ class _MainPageState extends State<MainPage>
 
   /// 初始化周次
   void _initializeWeeks() {
-    _curWeek = WeekManager.calculateCurrentWeek();
-    _week = _curWeek;
+    _curWeek = WeekManager.calculateCurrentWeek(_currentSemester);
+    setState(() {
+      _week = _curWeek;
+    });
   }
 
   /// 关闭浮动菜单
@@ -269,9 +266,7 @@ class _MainPageState extends State<MainPage>
   /// 返回当前周
   void _handleGoBack() {
     _pageController.jumpToPage(_curWeek - 1);
-    setState(() {
-      _week = _curWeek;
-    });
+    setState(() => _week = _curWeek);
   }
 
   @override

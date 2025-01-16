@@ -37,6 +37,7 @@ dependencies:
   flutter_pickers: ^2.1.9
   shared_preferences: ^2.3.3
   json_annotation: ^4.9.0
+  lunar: ^1.6.1
 
 dev_dependencies:
   flutter_test:

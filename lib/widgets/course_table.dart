@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/time_utils.dart';
 import 'course_info.dart';
+import 'main_page/week_manager.dart';
 
 /// 课程表组件
 /// 显示一周的课程安排，支持显示/隐藏周末、时间槽和网格
@@ -96,10 +97,9 @@ class CourseTable extends StatelessWidget {
   }
 
   /// 构建表头
-  Widget _buildHeader() {
+  Widget _buildHeader(List<DateTime> dates) {
     const weekdays = ["一", "二", "三", "四", "五", "六", "日"];
     final visibleDays = showWeekend ? weekdays : weekdays.sublist(0, 5);
-    final weekDates = _getWeekDates();
 
     return Container(
       height: 52,
@@ -117,7 +117,7 @@ class CourseTable extends StatelessWidget {
             ),
           ),
           ...List.generate(visibleDays.length, (index) {
-            final date = weekDates[index];
+            final date = dates[index];
             final isToday = _isToday(date);
 
             return Expanded(
@@ -254,20 +254,6 @@ class CourseTable extends StatelessWidget {
     return ranges.join(', ');
   }
 
-  /// 获取本周的日期列表
-  List<DateTime> _getWeekDates() {
-    final now = DateTime.now();
-    final year = now.month >= 9 ? now.year : now.year - 1;
-    var semesterStart = DateTime(year, 9, 1);
-
-    while (semesterStart.weekday >= 6) {
-      semesterStart = semesterStart.add(const Duration(days: 1));
-    }
-
-    final weekStart = semesterStart.add(Duration(days: (week - 1) * 7));
-    return List.generate(7, (index) => weekStart.add(Duration(days: index)));
-  }
-
   /// 检查是否是今天
   bool _isToday(DateTime date) {
     final now = DateTime.now();
@@ -366,13 +352,13 @@ class CourseTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gridWidth =
-        (MediaQuery.of(context).size.width - (showTimeSlots ? 45.0 : 30.0)) /
-            (showWeekend ? 7 : 5);
+    final dates = WeekManager.getWeekDates(currentSemester, week);
+    debugPrint(
+        '周次: $week, 日期: ${dates.map((d) => '${d.month}/${d.day}').join(', ')}');
 
     return Column(
       children: [
-        _buildHeader(),
+        _buildHeader(dates),
         Expanded(
           child: SingleChildScrollView(
             child: Row(
@@ -396,7 +382,9 @@ class CourseTable extends StatelessWidget {
                       }).toList();
 
                       return SizedBox(
-                        width: gridWidth,
+                        width: (MediaQuery.of(context).size.width -
+                                (showTimeSlots ? 45.0 : 30.0)) /
+                            (showWeekend ? 7 : 5),
                         child: Column(
                           children:
                               _buildCourseCells(columnCourses, col, context),
