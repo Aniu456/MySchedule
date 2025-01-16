@@ -36,7 +36,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Text(
               formattedDate,
               style: const TextStyle(
-                fontSize: 16.0,
+                fontSize: 15.5,
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
               ),
@@ -70,7 +70,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
         GestureDetector(
           onTap: onSemesterTap,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(16),
@@ -94,9 +94,9 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(16),
@@ -107,7 +107,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
             children: [
               const Text(
                 "第",
-                style: TextStyle(fontSize: 14, color: Colors.white),
+                style: TextStyle(fontSize: 13, color: Colors.white),
               ),
               const SizedBox(width: 4),
               Text(
@@ -121,7 +121,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
               const SizedBox(width: 4),
               const Text(
                 "周",
-                style: TextStyle(fontSize: 14, color: Colors.white),
+                style: TextStyle(fontSize: 13, color: Colors.white),
               ),
             ],
           ),

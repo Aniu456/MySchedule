@@ -102,12 +102,10 @@ class CourseTable extends StatelessWidget {
           Container(
             width: showTimeSlots ? 45.0 : 30.0,
             alignment: Alignment.center,
-            padding: const EdgeInsets.only(left: 2),
             child: Text(
               '${now.month}月',
               style: const TextStyle(
                 fontSize: 18,
-                color: Colors.grey,
               ),
             ),
           ),
@@ -179,7 +177,7 @@ class CourseTable extends StatelessWidget {
       child: InkWell(
         onTap: () => getCourseInfo(context, course, themeColor: themeColor),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
@@ -197,26 +195,32 @@ class CourseTable extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (course['teacherName']?.isNotEmpty ?? false)
-                    Text(
-                      '@${course['teacherName']}',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        '@${course['teacherName']}',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                 ],
               ),
             ),
-            Text(
-              getWeeks(course['weeks']),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
+            Container(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                getWeeks(course['weeks']),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
