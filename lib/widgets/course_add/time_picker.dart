@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/time_utils.dart';
 
 //时间选择器
 class TimePickerWidget extends StatelessWidget {
@@ -29,7 +30,7 @@ class TimePickerWidget extends StatelessWidget {
                   (time) => Chip(
                     backgroundColor: currentColor.withOpacity(0.1),
                     label: Text(
-                      '${time[0]} 第${time[1]}-${time[2]}节',
+                      TimeUtils.formatTimeRange(time),
                       style: TextStyle(color: currentColor),
                     ),
                     deleteIcon: Icon(
@@ -76,6 +77,15 @@ class _CourseTimePickerDialogState extends State<CourseTimePickerDialog> {
 
   static const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
+  // 检查时间段是否有效
+  bool _isValidTimeRange(int start, int end) {
+    // 确保开始时间小于结束时间
+    if (start > end) return false;
+    // 确保时间段不会太长（比如不允许跨越超过4节课）
+    if (end - start >= 4) return false;
+    return true;
+  }
+
   Widget _buildDropdown({
     required dynamic value,
     required String hint,
@@ -91,13 +101,35 @@ class _CourseTimePickerDialogState extends State<CourseTimePickerDialog> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton(
           value: value,
-          hint: Text(hint),
+          hint: Text(
+            hint,
+            style: const TextStyle(fontSize: 12),
+          ),
           isExpanded: true,
           items: items,
           onChanged: onChanged,
         ),
       ),
     );
+  }
+
+  void _handleTimeSelection(dynamic value) {
+    final int? selectedValue = value as int?;
+    if (selectedValue == null || startPeriod == null) return;
+
+    // 如果选择的结束时间小于开始时间，不允许选择
+    if (selectedValue < startPeriod!) return;
+
+    // 如果时间跨度过大，不允许选择
+    if (!_isValidTimeRange(startPeriod!, selectedValue)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('上课时间跨度不能超过4节课')),
+      );
+      return;
+    }
+
+    widget.onTimeAdded(selectedDay!, startPeriod!, selectedValue);
+    Navigator.pop(context);
   }
 
   @override
@@ -113,10 +145,17 @@ class _CourseTimePickerDialogState extends State<CourseTimePickerDialog> {
             items: weekdays
                 .map((day) => DropdownMenuItem(
                       value: day,
-                      child: Text(day),
+                      child: Text(
+                        day,
+                        style: const TextStyle(fontSize: 13),
+                      ),
                     ))
                 .toList(),
-            onChanged: (value) => setState(() => selectedDay = value),
+            onChanged: (value) => setState(() {
+              selectedDay = value;
+              startPeriod = null;
+              endPeriod = null;
+            }),
           ),
           const SizedBox(height: 16),
           Row(
@@ -129,13 +168,14 @@ class _CourseTimePickerDialogState extends State<CourseTimePickerDialog> {
                       10,
                       (i) => DropdownMenuItem(
                             value: i + 1,
-                            child: Text('第${i + 1}节'),
+                            child: Text(
+                              '第${i + 1}节',
+                              style: const TextStyle(fontSize: 13),
+                            ),
                           )),
                   onChanged: (value) => setState(() {
                     startPeriod = value;
-                    if (endPeriod != null && endPeriod! < value!) {
-                      endPeriod = value;
-                    }
+                    endPeriod = null;
                   }),
                 ),
               ),
@@ -152,17 +192,13 @@ class _CourseTimePickerDialogState extends State<CourseTimePickerDialog> {
                           10 - startPeriod! + 1,
                           (i) => DropdownMenuItem(
                                 value: i + startPeriod!,
-                                child: Text('第${i + startPeriod!}节'),
+                                child: Text(
+                                  '第${i + startPeriod!}节',
+                                  style: const TextStyle(fontSize: 13),
+                                ),
                               ))
                       : [],
-                  onChanged: (value) {
-                    if (selectedDay != null &&
-                        startPeriod != null &&
-                        value != null) {
-                      widget.onTimeAdded(selectedDay!, startPeriod!, value);
-                      Navigator.pop(context);
-                    }
-                  },
+                  onChanged: _handleTimeSelection,
                 ),
               ),
             ],

@@ -66,20 +66,25 @@ class _CourseAddState extends State<CourseAdd> {
     // 移除空的时间段
     _times = _times.where((time) => time.isNotEmpty).toList();
 
-    // 检查时间冲突
-    final newTime = [
-      day,
-      TimeUtils.getClassString(start),
-      TimeUtils.getClassString(end)
-    ];
-    if (TimeUtils.hasTimeConflict(_times, _weeks, [newTime], _weeks)) {
-      _showMessage('该时间段与已选时间重叠');
-      return;
+    // 检查新时间段是否与已有时间段重叠
+    for (var existingTime in _times) {
+      if (existingTime[0] == day) {
+        // 同一天的课程
+        int existingStart = TimeUtils.getClassValue(existingTime[1].toString());
+        int existingEnd = TimeUtils.getClassValue(existingTime[2].toString());
+
+        // 检查时间段是否重叠
+        if (!(end < existingStart || start > existingEnd)) {
+          _showMessage('该时间段与已选时间重叠');
+          return;
+        }
+      }
     }
 
     setState(() {
       // 添加新时间
-      List<List<dynamic>> newTimes = List.from(_times)..add(newTime);
+      List<List<dynamic>> newTimes = List.from(_times)
+        ..add([day, start.toString(), end.toString()]);
 
       // 按星期和时间排序
       newTimes.sort((a, b) {
