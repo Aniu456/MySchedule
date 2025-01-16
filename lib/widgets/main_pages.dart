@@ -28,6 +28,7 @@ class _MainPageState extends State<MainPage>
   List<Map<String, dynamic>> courses = <Map<String, dynamic>>[];
   int _currentSemester = 1;
   late AnimationController _animationController;
+  late PageController _pageController;
 
   @override
   void initState() {
@@ -36,6 +37,7 @@ class _MainPageState extends State<MainPage>
     _loadCourses();
     _loadSemester();
     _initializeAnimation();
+    _initializePageController();
   }
 
   void _initializeAnimation() {
@@ -45,9 +47,18 @@ class _MainPageState extends State<MainPage>
     );
   }
 
+  void _initializePageController() {
+    _pageController = PageController(
+      initialPage: _week - 1,
+      viewportFraction: 1.0,
+      keepPage: true,
+    );
+  }
+
   @override
   void dispose() {
     _animationController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -231,6 +242,13 @@ class _MainPageState extends State<MainPage>
     );
   }
 
+  void _handleGoBack() {
+    _pageController.jumpToPage(_curWeek - 1);
+    setState(() {
+      _week = _curWeek;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -247,6 +265,7 @@ class _MainPageState extends State<MainPage>
           showWeekend: _showWeekend,
         ),
         body: SlideTable(
+          controller: _pageController,
           onWeekChange: (week) => setState(() => _week = week),
           onSemesterChange: _handleSemesterChange,
           currentSemester: _currentSemester,
@@ -272,7 +291,7 @@ class _MainPageState extends State<MainPage>
               }
             });
           },
-          onGoBack: () => setState(() => _week = _curWeek),
+          onGoBack: _handleGoBack,
           onGridToggle: () => setState(() => _showGrid = !_showGrid),
           onTimeSlotsToggle: () =>
               setState(() => _showTimeSlots = !_showTimeSlots),

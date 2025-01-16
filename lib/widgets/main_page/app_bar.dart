@@ -70,7 +70,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
         GestureDetector(
           onTap: onSemesterTap,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(16),
@@ -96,7 +96,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         const SizedBox(width: 4),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(16),

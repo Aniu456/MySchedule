@@ -14,6 +14,7 @@ class SlideTable extends StatefulWidget {
   final bool showGrid;
   final Color themeColor;
   final List<Map<String, dynamic>> courses;
+  final PageController? controller;
 
   const SlideTable({
     super.key,
@@ -26,6 +27,7 @@ class SlideTable extends StatefulWidget {
     required this.showGrid,
     required this.themeColor,
     required this.courses,
+    this.controller,
   });
 
   @override
@@ -38,29 +40,36 @@ class _SlideTableState extends State<SlideTable> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(
-      initialPage: widget.offset - 1,
-      viewportFraction: 1.0,
-      keepPage: true,
-    );
+    _pageController = widget.controller ??
+        PageController(
+          initialPage: widget.offset - 1,
+          viewportFraction: 1.0,
+          keepPage: true,
+        );
   }
 
   @override
   void didUpdateWidget(SlideTable oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller &&
+        widget.controller != null) {
+      _pageController = widget.controller!;
+    }
     if (oldWidget.offset != widget.offset) {
-      _pageController.animateToPage(
-        widget.offset - 1,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      _pageController.jumpToPage(widget.offset - 1);
     }
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
+    if (widget.controller == null) {
+      _pageController.dispose();
+    }
     super.dispose();
+  }
+
+  void jumpToWeek(int week) {
+    _pageController.jumpToPage(week - 1);
   }
 
   @override

@@ -102,10 +102,11 @@ class CourseTable extends StatelessWidget {
           Container(
             width: showTimeSlots ? 45.0 : 30.0,
             alignment: Alignment.center,
-            child: Text(
-              '${now.month}月',
-              style: const TextStyle(
-                fontSize: 18,
+            child: const Text(
+              '日期',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
