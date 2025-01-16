@@ -56,11 +56,7 @@ class _MainPageState extends State<MainPage>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _pageController = PageController(
-      initialPage: _week - 1,
-      viewportFraction: 1.0,
-      keepPage: true,
-    );
+    _pageController = PageController(initialPage: _week - 1);
   }
 
   @override
@@ -231,8 +227,15 @@ class _MainPageState extends State<MainPage>
 
   /// 处理学期变更
   void _handleSemesterChange(int semester) async {
-    setState(() => _currentSemester = semester);
+    _curWeek = WeekManager.calculateCurrentWeek(semester);
+    setState(() {
+      _currentSemester = semester;
+      _week = _curWeek;
+    });
     await CourseStorage.saveSemester(semester);
+    if (_pageController.hasClients) {
+      _pageController.jumpToPage(_curWeek - 1);
+    }
   }
 
   /// 显示学期选择对话框
@@ -263,10 +266,26 @@ class _MainPageState extends State<MainPage>
     );
   }
 
+  /// 处理周末显示切换
+  void _handleWeekendToggle() {
+    setState(() => _showWeekend = !_showWeekend);
+  }
+
   /// 返回当前周
   void _handleGoBack() {
-    _pageController.jumpToPage(_curWeek - 1);
-    setState(() => _week = _curWeek);
+    setState(() {
+      _curWeek = WeekManager.calculateCurrentWeek(_currentSemester);
+      _week = _curWeek;
+      _isMenuOpen = false;
+      _animationController.reverse();
+    });
+
+    // 确保在状态更新后再跳转页面
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(_curWeek - 1);
+      }
+    });
   }
 
   @override
@@ -280,7 +299,7 @@ class _MainPageState extends State<MainPage>
           currentWeek: _week,
           themeColor: _themeColor,
           onAddCourse: () => _onAddButtonPressed(context),
-          onToggleWeekend: () => setState(() => _showWeekend = !_showWeekend),
+          onToggleWeekend: _handleWeekendToggle,
           onSemesterTap: _showSemesterPicker,
           showWeekend: _showWeekend,
         ),

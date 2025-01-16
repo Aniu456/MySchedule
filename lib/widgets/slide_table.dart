@@ -57,7 +57,23 @@ class _SlideTableState extends State<SlideTable> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: widget.initialWeek - 1);
+    _pageController = PageController(
+      initialPage: widget.initialWeek - 1,
+      keepPage: true,
+    );
+  }
+
+  @override
+  void didUpdateWidget(SlideTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 当周次变化时，更新页面位置
+    if (oldWidget.initialWeek != widget.initialWeek) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_pageController.hasClients && mounted) {
+          _pageController.jumpToPage(widget.initialWeek - 1);
+        }
+      });
+    }
   }
 
   @override
@@ -70,7 +86,12 @@ class _SlideTableState extends State<SlideTable> {
   Widget build(BuildContext context) {
     return PageView.builder(
       controller: _pageController,
-      onPageChanged: (page) => widget.onWeekChange(page + 1),
+      onPageChanged: (page) {
+        if (mounted) {
+          widget.onWeekChange(page + 1);
+        }
+      },
+      itemCount: 20,
       itemBuilder: (context, index) {
         final week = index + 1;
         return CourseTable(
