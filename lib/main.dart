@@ -20,7 +20,11 @@ class MyApp extends StatelessWidget {
           //   backgroundColor: Colors.white, // 设置全局标题栏的背景颜色
           // ),
           colorScheme:
-              ColorScheme.fromSwatch().copyWith(secondary: Colors.white)),
+              ColorScheme.fromSwatch().copyWith(secondary: Colors.white),
+          snackBarTheme: const SnackBarThemeData(
+            behavior: SnackBarBehavior.floating,
+            width: double.infinity,
+          )),
       home: const MainPage(), // 应用的主页
       // debugShowMaterialGrid: false, // 是否显示调试网格
       debugShowCheckedModeBanner: false,
