@@ -81,11 +81,11 @@ class CourseTable extends StatelessWidget {
                 if (showTimeSlots) ...[
                   Text(
                     _timeSlots[index][0],
-                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                   Text(
                     _timeSlots[index][1],
-                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ],
@@ -127,7 +127,7 @@ class CourseTable extends StatelessWidget {
                   Text(
                     '周${visibleDays[index]}',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
                       color: isToday ? Colors.red : Colors.black,
                     ),
@@ -136,7 +136,7 @@ class CourseTable extends StatelessWidget {
                   Text(
                     '${date.month}/${date.day}',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: isToday ? Colors.red : Colors.grey,
                       fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                     ),
@@ -161,7 +161,7 @@ class CourseTable extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.all(1),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
       decoration: BoxDecoration(
         color: Color.fromRGBO(
           course['color'][0],
@@ -169,12 +169,12 @@ class CourseTable extends StatelessWidget {
           course['color'][2],
           1,
         ),
-        borderRadius: BorderRadius.circular(4),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(2),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
+            color: Colors.white24,
+            // blurRadius: 2,
+            // offset: Offset(0, 1),
           ),
         ],
       ),
@@ -194,34 +194,37 @@ class CourseTable extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    course['courseName'] ?? '',
+                    course['courseName'] ?? '未输入课程名',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
-                    maxLines: 2,
+                    maxLines: showWeekend ? 3 : 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (course['teacherName']?.isNotEmpty ?? false)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        '@${course['teacherName']}',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
                 ],
               ),
             ),
+            if (course['teacherName']?.isNotEmpty ?? false)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  '@${course['teacherName']}',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: showWeekend ? 11 : 12,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             Text(
               _formatWeeks(List<int>.from(course['weeks'] ?? [])),
-              style: const TextStyle(color: Colors.white, fontSize: 12),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: showWeekend ? 10 : 13,
+                  fontWeight: FontWeight.bold),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
