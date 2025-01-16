@@ -57,20 +57,26 @@ class _CourseAddState extends State<CourseAdd> {
   }
 
   void _addTime(String day, int start, int end) {
-    bool hasOverlap = _times.any((existingTime) {
-      if (existingTime.isEmpty || existingTime[0] != day) return false;
-      int existingStart = int.parse(existingTime[1].toString());
-      int existingEnd = int.parse(existingTime[2].toString());
-      return !(end < existingStart || start > existingEnd);
-    });
+    _times.removeWhere((time) => time.isEmpty);
 
-    if (hasOverlap) {
+    bool hasConflict = false;
+    for (var time in _times) {
+      if (time[0] == day) {
+        int existingStart = int.parse(time[1].toString());
+        int existingEnd = int.parse(time[2].toString());
+        if (!(end < existingStart || start > existingEnd)) {
+          hasConflict = true;
+          break;
+        }
+      }
+    }
+
+    if (hasConflict) {
       _showMessage('该时间段与已选时间重叠');
       return;
     }
 
     setState(() {
-      _times.removeWhere((time) => time.isEmpty);
       _times.add([day, start.toString(), end.toString()]);
     });
   }
@@ -142,32 +148,46 @@ class _CourseAddState extends State<CourseAdd> {
 
     _formKey.currentState!.save();
 
-    if (_courseName.isEmpty) {
-      _showMessage('请输入课程名称');
+    if (_courseName.isEmpty || _teacherName.isEmpty) {
+      _showMessage('请填写课程名称和教师姓名');
       return;
     }
-    if (_teacherName.isEmpty) {
-      _showMessage('请输入授课教师');
-      return;
-    }
-    if (_times.isEmpty || _times.every((t) => t.isEmpty)) {
+
+    List<List<dynamic>> validTimes = _times.where((t) => t.isNotEmpty).toList();
+    if (validTimes.isEmpty) {
       _showMessage('请添加上课时间');
       return;
     }
+
     if (_weeks.isEmpty) {
       _showMessage('请选择上课周次');
       return;
     }
 
+    bool hasConflict = false;
     for (var existingCourse in _courses) {
-      if (_checkTimeConflict(
-        List<List<dynamic>>.from(existingCourse['times']),
-        List<int>.from(existingCourse['weeks']),
-        _times,
-        _weeks,
-      )) {
-        _showMessage('与已添加的 ${existingCourse['courseName']} 课程时间冲突');
-        return;
+      List<List<dynamic>> existingTimes =
+          List<List<dynamic>>.from(existingCourse['times']);
+      List<int> existingWeeks = List<int>.from(existingCourse['weeks']);
+
+      bool hasWeekOverlap = existingWeeks.any((week) => _weeks.contains(week));
+      if (!hasWeekOverlap) continue;
+
+      for (var existingTime in existingTimes) {
+        for (var newTime in validTimes) {
+          if (existingTime[0] == newTime[0]) {
+            int existingStart = int.parse(existingTime[1].toString());
+            int existingEnd = int.parse(existingTime[2].toString());
+            int newStart = int.parse(newTime[1].toString());
+            int newEnd = int.parse(newTime[2].toString());
+
+            if (!(newEnd < existingStart || newStart > existingEnd)) {
+              hasConflict = true;
+              _showMessage('与已添加的 ${existingCourse['courseName']} 课程时间冲突');
+              return;
+            }
+          }
+        }
       }
     }
 
@@ -176,7 +196,7 @@ class _CourseAddState extends State<CourseAdd> {
       'teacherName': _teacherName,
       'remarks': _remarks,
       'color': [_currentColor.red, _currentColor.green, _currentColor.blue],
-      'times': _times.where((t) => t.isNotEmpty).toList(),
+      'times': validTimes,
       'weeks': _weeks,
       'semester': _semester,
     };
@@ -205,28 +225,47 @@ class _CourseAddState extends State<CourseAdd> {
     List<List<dynamic>> newTimes,
     List<int> newWeeks,
   ) {
-    if (!existingWeeks.any((week) => newWeeks.contains(week))) return false;
+    // 首先检查周次是否有重叠
+    bool hasWeekOverlap = false;
+    for (var week in existingWeeks) {
+      if (newWeeks.contains(week)) {
+        hasWeekOverlap = true;
+        break;
+      }
+    }
+    if (!hasWeekOverlap) return false;
 
-    return existingTimes.any((existingTime) {
-      return newTimes.any((newTime) {
-        if (existingTime.isEmpty || newTime.isEmpty) return false;
-        if (existingTime[0] != newTime[0]) return false;
+    // 检查时间是否有重叠
+    for (var existingTime in existingTimes) {
+      if (existingTime.isEmpty) continue;
 
+      for (var newTime in newTimes) {
+        if (newTime.isEmpty) continue;
+
+        // 如果不是同一天，继续检查下一个时间
+        if (existingTime[0] != newTime[0]) continue;
+
+        // 转换时间为整数进行比较
         int existingStart = int.parse(existingTime[1].toString());
         int existingEnd = int.parse(existingTime[2].toString());
         int newStart = int.parse(newTime[1].toString());
         int newEnd = int.parse(newTime[2].toString());
 
-        return !(newEnd < existingStart || newStart > existingEnd);
-      });
-    });
+        // 检查时间是否重叠
+        if (!(newEnd < existingStart || newStart > existingEnd)) {
+          return true; // 发现时间重叠
+        }
+      }
+    }
+
+    return false; // 没有发现时间重叠
   }
 
   void _finishAndReturn() {
     if (_courses.isEmpty) {
       Navigator.pop(context);
     } else {
-      Navigator.pop(context, _courses);
+      Navigator.pop(context, List<Map<String, dynamic>>.from(_courses));
     }
   }
 
