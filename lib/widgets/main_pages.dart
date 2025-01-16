@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:schedule/utils/week_index.dart';
 import 'package:schedule/widgets/course_add_page.dart';
 import 'package:schedule/widgets/slide_table.dart';
 import '../utils/course_storage.dart';
@@ -179,19 +178,6 @@ class _MainPageState extends State<MainPage>
     });
   }
 
-  /// 返回到当前周次
-  void _handleWeekBack() => setState(() => _week = _curWeek);
-
-  /// 更新当前周次
-  /// [week] 新的当前周次
-  Future<void> _handleCurWeekChange(int week) async {
-    await WeekIndex.update(week);
-    setState(() {
-      _week = week;
-      _curWeek = week;
-    });
-  }
-
   /// 获取格式化的当前日期
   String _getFormattedDate() {
     final date = DateTime.now();
@@ -264,17 +250,16 @@ class _MainPageState extends State<MainPage>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "$currentSemester学期",
+                  "$currentSemester",
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 4),
                 const Icon(
                   Icons.arrow_drop_down,
                   color: Colors.white,
-                  size: 18,
+                  size: 16,
                 ),
               ],
             ),
@@ -353,7 +338,6 @@ class _MainPageState extends State<MainPage>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('删除确认'),
           content: const Text('确定要删除当前学期的所有课程吗？'),
           actions: [
             TextButton(
@@ -450,6 +434,11 @@ class _MainPageState extends State<MainPage>
                   _handleSemesterChange(semester);
                   Navigator.pop(context);
                 },
+                // style: ListTileStyle.list,
+                // // selectedTileColor: Colors.grey[200],
+                // shape: const UnderlineInputBorder(
+                //   borderSide: BorderSide(color: Colors.grey),
+                // ),
               );
             },
           ),

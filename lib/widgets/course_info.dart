@@ -30,8 +30,6 @@ String getWeeks(List<int> weeks) {
   return weekRanges.join(', ');
 }
 
-// ... 保持 getWeeks() 函数不变 ...
-
 void getCourseInfo(BuildContext context, Map<String, dynamic> course,
     {Color themeColor = Colors.teal}) {
   showDialog(

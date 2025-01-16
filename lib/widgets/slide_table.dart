@@ -4,7 +4,7 @@ import 'course_table.dart';
 /// SlideTable 小部件，用于显示可滑动的课程表视图
 /// [onWeekChange] 当前周改变时的回调函数，影响顶部导航栏显示
 /// [offset] 为显示的起始周数，默认为1
-class SlideTable extends StatelessWidget {
+class SlideTable extends StatefulWidget {
   final Function(int) onWeekChange;
   final Function(int) onSemesterChange;
   final int currentSemester;
@@ -29,20 +29,55 @@ class SlideTable extends StatelessWidget {
   });
 
   @override
+  State<SlideTable> createState() => _SlideTableState();
+}
+
+class _SlideTableState extends State<SlideTable> {
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(
+      initialPage: widget.offset - 1,
+      viewportFraction: 1.0,
+      keepPage: true,
+    );
+  }
+
+  @override
+  void didUpdateWidget(SlideTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.offset != widget.offset) {
+      _pageController.animateToPage(
+        widget.offset - 1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return PageView.builder(
-      controller: PageController(initialPage: offset - 1),
-      onPageChanged: (index) => onWeekChange(index + 1),
+      controller: _pageController,
+      onPageChanged: (index) => widget.onWeekChange(index + 1),
       itemCount: 20,
       itemBuilder: (context, index) {
         return CourseTable(
           week: index + 1,
-          currentSemester: currentSemester,
-          showWeekend: showWeekend,
-          showTimeSlots: showTimeSlots,
-          showGrid: showGrid,
-          themeColor: themeColor,
-          courses: courses,
+          currentSemester: widget.currentSemester,
+          showWeekend: widget.showWeekend,
+          showTimeSlots: widget.showTimeSlots,
+          showGrid: widget.showGrid,
+          themeColor: widget.themeColor,
+          courses: widget.courses,
         );
       },
     );

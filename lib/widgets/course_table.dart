@@ -93,7 +93,7 @@ class CourseTable extends StatelessWidget {
     final weekStart = semesterStart.add(Duration(days: (week - 1) * 7));
 
     return Container(
-      height: 60,
+      height: 52,
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
       ),
@@ -102,10 +102,11 @@ class CourseTable extends StatelessWidget {
           Container(
             width: showTimeSlots ? 45.0 : 30.0,
             alignment: Alignment.center,
+            padding: const EdgeInsets.only(left: 2),
             child: Text(
               '${now.month}月',
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 18,
                 color: Colors.grey,
               ),
             ),
@@ -149,9 +150,14 @@ class CourseTable extends StatelessWidget {
   Widget _buildCourseCell(Map<String, dynamic>? course, BuildContext context) {
     if (course == null) return Container();
 
+    // 检查课程是否在当前周显示
+    if (!List<int>.from(course['weeks'] ?? []).contains(week)) {
+      return Container();
+    }
+
     return Container(
       margin: const EdgeInsets.all(1),
-      padding: const EdgeInsets.all(2),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       width: double.infinity,
       height: double.infinity,
       decoration: BoxDecoration(
@@ -162,6 +168,13 @@ class CourseTable extends StatelessWidget {
           1,
         ),
         borderRadius: BorderRadius.circular(4),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: InkWell(
         onTap: () => getCourseInfo(context, course, themeColor: themeColor),
@@ -169,32 +182,38 @@ class CourseTable extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    course['courseName'] ?? '',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (course['teacherName']?.isNotEmpty ?? false)
+                    Text(
+                      '@${course['teacherName']}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
             Text(
-              course['courseName'] ?? '',
+              getWeeks(course['weeks']),
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (course['teacherName']?.isNotEmpty ?? false)
-              Text(
-                '@${course['teacherName']}',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 10,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            const Spacer(),
-            Text(
-              '周${_getWeeksString(List<int>.from(course['weeks'] ?? []))}',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 9,
+                fontSize: 14,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -205,22 +224,34 @@ class CourseTable extends StatelessWidget {
     );
   }
 
-  String _getWeeksString(List<int> weeks) {
+  String getWeeks(List<int> weeks) {
     if (weeks.isEmpty) return '';
+
     weeks.sort();
-    final ranges = <String>[];
-    int start = weeks[0], end = weeks[0];
+    List<String> weekRanges = [];
+    int start = weeks.first;
+    int end = weeks.first;
 
     for (int i = 1; i < weeks.length; i++) {
       if (weeks[i] == end + 1) {
         end = weeks[i];
       } else {
-        ranges.add(start == end ? '$start' : '$start-$end');
-        start = end = weeks[i];
+        if (start == end) {
+          weekRanges.add('$start');
+        } else {
+          weekRanges.add('$start-$end周');
+        }
+        start = weeks[i];
+        end = weeks[i];
       }
     }
-    ranges.add(start == end ? '$start' : '$start-$end');
-    return ranges.join(', ');
+    if (start == end) {
+      weekRanges.add('$start');
+    } else {
+      weekRanges.add('$start-$end周');
+    }
+
+    return weekRanges.join(', ');
   }
 
   @override
@@ -241,47 +272,23 @@ class CourseTable extends StatelessWidget {
                 Expanded(
                   child: Row(
                     children: List.generate(showWeekend ? 7 : 5, (col) {
+                      // 获取这一列的所有课程
+                      final columnCourses = courses.where((course) {
+                        if (course['semester'] != currentSemester) return false;
+                        if (!course['weeks'].contains(week)) return false;
+
+                        return course['times'].any((time) {
+                          if (time is! List || time.length < 3) return false;
+                          final dayNum = _dayToNumber(time[0].toString());
+                          return dayNum == col + 1;
+                        });
+                      }).toList();
+
                       return SizedBox(
                         width: gridWidth,
                         child: Column(
-                          children: List.generate(10, (row) {
-                            final coursesInCell = courses.where((course) {
-                              if (course['semester'] != currentSemester)
-                                return false;
-                              if (!course['weeks'].contains(week)) return false;
-
-                              return course['times'].any((time) {
-                                if (time is! List || time.length < 3)
-                                  return false;
-
-                                final dayNum = _dayToNumber(time[0].toString());
-                                final startClass =
-                                    _classToNumber(time[1].toString());
-                                final endClass =
-                                    _classToNumber(time[2].toString());
-
-                                return dayNum == col + 1 &&
-                                    startClass <= endClass &&
-                                    row + 1 >= startClass &&
-                                    row + 1 <= endClass;
-                              });
-                            }).toList();
-
-                            return Container(
-                              height: 60.0,
-                              decoration: BoxDecoration(
-                                border: showGrid
-                                    ? Border.all(color: Colors.grey[200]!)
-                                    : Border.all(color: Colors.transparent),
-                              ),
-                              child: _buildCourseCell(
-                                coursesInCell.isNotEmpty
-                                    ? coursesInCell.first
-                                    : null,
-                                context,
-                              ),
-                            );
-                          }),
+                          children:
+                              _buildCourseCells(columnCourses, col, context),
                         ),
                       );
                     }),
@@ -293,6 +300,91 @@ class CourseTable extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  List<Widget> _buildCourseCells(
+    List<Map<String, dynamic>> columnCourses,
+    int col,
+    BuildContext context,
+  ) {
+    List<Widget> cells = [];
+    Set<int> occupiedSlots = {};
+
+    // 按开始时间排序课程
+    columnCourses.sort((a, b) {
+      int aStart = _getStartTime(a['times'], col);
+      int bStart = _getStartTime(b['times'], col);
+      return aStart.compareTo(bStart);
+    });
+
+    for (int row = 0; row < 10; row++) {
+      if (occupiedSlots.contains(row)) continue;
+
+      Map<String, dynamic>? courseForThisSlot;
+      List<dynamic>? courseTime;
+
+      for (var course in columnCourses) {
+        var time = course['times'].firstWhere((time) {
+          if (time is! List || time.length < 3) return false;
+          if (_dayToNumber(time[0].toString()) != col + 1) return false;
+
+          int startClass = _classToNumber(time[1].toString());
+          int endClass = _classToNumber(time[2].toString());
+          return row + 1 >= startClass && row + 1 <= endClass;
+        }, orElse: () => List<dynamic>.empty());
+
+        if (time is List && time.isNotEmpty) {
+          courseForThisSlot = course;
+          courseTime = time;
+          break;
+        }
+      }
+
+      if (courseForThisSlot != null && courseTime != null) {
+        int startClass = _classToNumber(courseTime[1].toString());
+        int endClass = _classToNumber(courseTime[2].toString());
+        int duration = endClass - startClass + 1;
+
+        // 标记被占用的时间段
+        for (int i = startClass - 1; i < endClass; i++) {
+          occupiedSlots.add(i);
+        }
+
+        cells.add(
+          Container(
+            height: 60.0 * duration,
+            decoration: BoxDecoration(
+              border: showGrid
+                  ? Border.all(color: Colors.grey[200]!)
+                  : Border.all(color: Colors.transparent),
+            ),
+            child: _buildCourseCell(courseForThisSlot, context),
+          ),
+        );
+      } else if (!occupiedSlots.contains(row)) {
+        cells.add(
+          Container(
+            height: 60.0,
+            decoration: BoxDecoration(
+              border: showGrid
+                  ? Border.all(color: Colors.grey[200]!)
+                  : Border.all(color: Colors.transparent),
+            ),
+          ),
+        );
+      }
+    }
+
+    return cells;
+  }
+
+  int _getStartTime(List<dynamic> times, int col) {
+    var time = times.firstWhere(
+      (time) => _dayToNumber(time[0].toString()) == col + 1,
+      orElse: () => null,
+    );
+    if (time == null) return 999;
+    return _classToNumber(time[1].toString());
   }
 
   int _dayToNumber(String day) {
