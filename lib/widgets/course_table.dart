@@ -60,45 +60,87 @@ class CourseTable extends StatelessWidget {
     required this.onCourseDeleted,
   });
 
+  /// 获取自适应字体大小计算函数
+  double Function(double) getAdaptiveFontSizeCalculator(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final fontSizeFactor = screenWidth / 375.0; // 统一使用 iPhone SE 的宽度作为基准
+
+    return (double baseSize) {
+      final size = baseSize * fontSizeFactor;
+      return size.clamp(baseSize * 0.8, baseSize * 1.6); // 统一缩放范围
+    };
+  }
+
   /// 构建时间列
   Widget _buildTimeColumn() {
-    return SizedBox(
-      width: showTimeSlots ? 45.0 : 30.0,
-      child: Column(
-        children: List.generate(10, (index) {
-          return Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                border: showGrid
-                    ? Border.all(color: Colors.grey[200]!)
-                    : Border.all(color: Colors.transparent),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${index + 1}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final getAdaptiveFontSize = getAdaptiveFontSizeCalculator(context);
+        final screenWidth = MediaQuery.of(context).size.width;
+        final sizeFactor = screenWidth / 375.0;
+
+        return SizedBox(
+          width: showTimeSlots ? 45.0 : 30.0,
+          child: Column(
+            children: List.generate(10, (index) {
+              return Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: showGrid
+                        ? Border.all(color: Colors.grey[200]!)
+                        : Border.all(color: Colors.transparent),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          flex: 2,
+                          child: Center(
+                            child: Text(
+                              '${index + 1}',
+                              style: TextStyle(
+                                fontSize: getAdaptiveFontSize(14),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (showTimeSlots) ...[
+                          Flexible(
+                            flex: 3,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Column(
+                                children: [
+                                  Text(
+                                    _timeSlots[index][0],
+                                    style: TextStyle(
+                                      fontSize: getAdaptiveFontSize(12),
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Text(
+                                    _timeSlots[index][1],
+                                    style: TextStyle(
+                                      fontSize: getAdaptiveFontSize(12),
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  if (showTimeSlots) ...[
-                    Text(
-                      _timeSlots[index][0],
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    Text(
-                      _timeSlots[index][1],
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          );
-        }),
-      ),
+                ),
+              );
+            }),
+          ),
+        );
+      },
     );
   }
 
@@ -107,52 +149,75 @@ class CourseTable extends StatelessWidget {
     const weekdays = ["一", "二", "三", "四", "五", "六", "日"];
     final visibleDays = showWeekend ? weekdays : weekdays.sublist(0, 5);
 
-    return Container(
-      height: 52,
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: showTimeSlots ? 45.0 : 30.0,
-            alignment: Alignment.center,
-            child: const Text(
-              '日期',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-            ),
-          ),
-          ...List.generate(visibleDays.length, (index) {
-            final date = dates[index];
-            final isToday = _isToday(date);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final getAdaptiveFontSize = getAdaptiveFontSizeCalculator(context);
+        final screenWidth = MediaQuery.of(context).size.width;
+        final sizeFactor = screenWidth / 375.0;
+        final headerHeight = 55 * sizeFactor.clamp(1.0, 1.5);
 
-            return Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '周${visibleDays[index]}',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
-                      color: isToday ? Colors.red : Colors.black,
-                    ),
+        return Container(
+          height: headerHeight,
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: showTimeSlots ? 45.0 : 30.0,
+                alignment: Alignment.center,
+                child: Text(
+                  '日期',
+                  style: TextStyle(
+                    fontSize: getAdaptiveFontSize(13),
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${date.month}/${date.day}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isToday ? Colors.red : Colors.grey,
-                      fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            );
-          }),
-        ],
-      ),
+              ...List.generate(visibleDays.length, (index) {
+                final date = dates[index];
+                final isToday = _isToday(date);
+
+                return Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          alignment: Alignment.center,
+                          child: Text(
+                            '周${visibleDays[index]}',
+                            style: TextStyle(
+                              fontSize: getAdaptiveFontSize(15),
+                              fontWeight:
+                                  isToday ? FontWeight.bold : FontWeight.w500,
+                              color: isToday ? Colors.red : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          alignment: Alignment.center,
+                          child: Text(
+                            '${date.month}/${date.day}',
+                            style: TextStyle(
+                              fontSize: getAdaptiveFontSize(13),
+                              color: isToday ? Colors.red : Colors.grey,
+                              fontWeight:
+                                  isToday ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -165,9 +230,16 @@ class CourseTable extends StatelessWidget {
       return Container();
     }
 
+    final getAdaptiveFontSize = getAdaptiveFontSizeCalculator(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final sizeFactor = screenWidth / 375.0;
+
     return Container(
       margin: const EdgeInsets.all(1),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      padding: EdgeInsets.symmetric(
+        horizontal: 4 * sizeFactor.clamp(1.0, 1.5),
+        vertical: 1 * sizeFactor.clamp(1.0, 1.5),
+      ),
       decoration: BoxDecoration(
         color: Color.fromRGBO(
           course['color'][0],
@@ -175,7 +247,7 @@ class CourseTable extends StatelessWidget {
           course['color'][2],
           1,
         ),
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(2 * sizeFactor.clamp(1.0, 1.5)),
         boxShadow: const [
           BoxShadow(
             color: Colors.white24,
@@ -198,14 +270,15 @@ class CourseTable extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Flexible(
+                    flex: 2,
                     child: Text(
                       course['courseName'] ?? '未输入课程名',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 15,
+                        fontSize: getAdaptiveFontSize(15),
                         fontWeight: FontWeight.bold,
                       ),
-                      maxLines: showWeekend ? 2 : 3,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -215,7 +288,7 @@ class CourseTable extends StatelessWidget {
                         '@${course['teacherName']}',
                         style: TextStyle(
                           color: Colors.white70,
-                          fontSize: showWeekend ? 11 : 12,
+                          fontSize: getAdaptiveFontSize(12),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -228,7 +301,7 @@ class CourseTable extends StatelessWidget {
               _formatWeeks(List<int>.from(course['weeks'] ?? [])),
               style: TextStyle(
                 color: Colors.white,
-                fontSize: showWeekend ? 10 : 11,
+                fontSize: getAdaptiveFontSize(11),
                 fontWeight: FontWeight.bold,
               ),
               maxLines: 1,
@@ -253,14 +326,14 @@ class CourseTable extends StatelessWidget {
       if (weeks[i] == end + 1) {
         end = weeks[i];
       } else {
-        ranges.add(start == end ? '$start' : '$start-$end周');
+        ranges.add(start == end ? '$start周' : '$start-$end周');
         start = weeks[i];
         end = weeks[i];
       }
     }
-    ranges.add(start == end ? '$start' : '$start-$end周');
+    ranges.add(start == end ? '$start周' : '$start-$end周');
 
-    return ranges.join(', ');
+    return ranges.join('，');
   }
 
   /// 检查是否是今天

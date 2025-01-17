@@ -23,11 +23,23 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.showWeekend,
   });
 
+  /// 获取自适应字体大小
+  double getAdaptiveFontSize(BuildContext context, double baseSize) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final fontSizeFactor = screenWidth / 375.0;
+    final size = baseSize * fontSizeFactor;
+    return size.clamp(baseSize * 0.8, baseSize * 1.4);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final adaptiveHeight = kToolbarHeight *
+        (MediaQuery.of(context).size.width / 375.0).clamp(1.0, 1.3);
+
     return AppBar(
       elevation: 0,
       backgroundColor: themeColor,
+      toolbarHeight: adaptiveHeight,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -35,93 +47,110 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
             flex: 2,
             child: Text(
               formattedDate,
-              style: const TextStyle(
-                fontSize: 15.5,
+              style: TextStyle(
+                fontSize: getAdaptiveFontSize(context, 15.5),
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
               ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          _buildWeekDisplay(),
+          _buildWeekDisplay(context),
         ],
       ),
       actions: <Widget>[
         IconButton(
+          iconSize: getAdaptiveFontSize(context, 24),
+          padding: EdgeInsets.all(getAdaptiveFontSize(context, 8)),
           icon: const Icon(Icons.add, color: Colors.white),
           onPressed: onAddCourse,
         ),
         IconButton(
+          iconSize: getAdaptiveFontSize(context, 24),
+          padding: EdgeInsets.all(getAdaptiveFontSize(context, 8)),
           icon: Icon(
             showWeekend ? Icons.weekend : Icons.weekend_outlined,
             color: Colors.white,
           ),
           onPressed: onToggleWeekend,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: getAdaptiveFontSize(context, 8)),
       ],
     );
   }
 
-  Widget _buildWeekDisplay() {
+  Widget _buildWeekDisplay(BuildContext context) {
+    final containerPadding = EdgeInsets.symmetric(
+      horizontal: getAdaptiveFontSize(context, 6),
+      vertical: getAdaptiveFontSize(context, 4),
+    );
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
           onTap: onSemesterTap,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            padding: containerPadding,
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius:
+                  BorderRadius.circular(getAdaptiveFontSize(context, 16)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   "$currentSemester",
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: TextStyle(
+                    fontSize: getAdaptiveFontSize(context, 14),
                     color: Colors.white,
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.arrow_drop_down,
                   color: Colors.white,
-                  size: 16,
+                  size: getAdaptiveFontSize(context, 16),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: getAdaptiveFontSize(context, 4)),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          padding: containerPadding,
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius:
+                BorderRadius.circular(getAdaptiveFontSize(context, 16)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
+              Text(
                 "第",
-                style: TextStyle(fontSize: 13, color: Colors.white),
+                style: TextStyle(
+                  fontSize: getAdaptiveFontSize(context, 13),
+                  color: Colors.white,
+                ),
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: getAdaptiveFontSize(context, 4)),
               Text(
                 currentWeek.toString(),
-                style: const TextStyle(
-                  fontSize: 16,
+                style: TextStyle(
+                  fontSize: getAdaptiveFontSize(context, 16),
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(width: 4),
-              const Text(
+              SizedBox(width: getAdaptiveFontSize(context, 4)),
+              Text(
                 "周",
-                style: TextStyle(fontSize: 13, color: Colors.white),
+                style: TextStyle(
+                  fontSize: getAdaptiveFontSize(context, 13),
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
