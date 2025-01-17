@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../utils/time_utils.dart';
 import 'course_info.dart';
 import 'main_page/week_manager.dart';
@@ -60,87 +61,68 @@ class CourseTable extends StatelessWidget {
     required this.onCourseDeleted,
   });
 
-  /// 获取自适应字体大小计算函数
-  double Function(double) getAdaptiveFontSizeCalculator(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final fontSizeFactor = screenWidth / 375.0; // 统一使用 iPhone SE 的宽度作为基准
-
-    return (double baseSize) {
-      final size = baseSize * fontSizeFactor;
-      return size.clamp(baseSize * 0.8, baseSize * 1.6); // 统一缩放范围
-    };
-  }
-
   /// 构建时间列
   Widget _buildTimeColumn() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final getAdaptiveFontSize = getAdaptiveFontSizeCalculator(context);
-        final screenWidth = MediaQuery.of(context).size.width;
-        final sizeFactor = screenWidth / 375.0;
-
-        return SizedBox(
-          width: showTimeSlots ? 45.0 : 30.0,
-          child: Column(
-            children: List.generate(10, (index) {
-              return Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: showGrid
-                        ? Border.all(color: Colors.grey[200]!)
-                        : Border.all(color: Colors.transparent),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          flex: 2,
-                          child: Center(
-                            child: Text(
-                              '${index + 1}',
-                              style: TextStyle(
-                                fontSize: getAdaptiveFontSize(14),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+    return SizedBox(
+      width: (showTimeSlots ? 45 : 30).w,
+      child: Column(
+        children: List.generate(10, (index) {
+          return Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                border: showGrid
+                    ? Border.all(color: Colors.grey[200]!)
+                    : Border.all(color: Colors.transparent),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      flex: 2,
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (showTimeSlots) ...[
-                          Flexible(
-                            flex: 3,
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Column(
-                                children: [
-                                  Text(
-                                    _timeSlots[index][0],
-                                    style: TextStyle(
-                                      fontSize: getAdaptiveFontSize(12),
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  Text(
-                                    _timeSlots[index][1],
-                                    style: TextStyle(
-                                      fontSize: getAdaptiveFontSize(12),
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+                      ),
                     ),
-                  ),
+                    if (showTimeSlots) ...[
+                      Flexible(
+                        flex: 3,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Column(
+                            children: [
+                              Text(
+                                _timeSlots[index][0],
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              Text(
+                                _timeSlots[index][1],
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              );
-            }),
-          ),
-        );
-      },
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 
@@ -149,160 +131,132 @@ class CourseTable extends StatelessWidget {
     const weekdays = ["一", "二", "三", "四", "五", "六", "日"];
     final visibleDays = showWeekend ? weekdays : weekdays.sublist(0, 5);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final getAdaptiveFontSize = getAdaptiveFontSizeCalculator(context);
-        final screenWidth = MediaQuery.of(context).size.width;
-        final sizeFactor = screenWidth / 375.0;
-        final headerHeight = 55 * sizeFactor.clamp(1.0, 1.5);
-
-        return Container(
-          height: headerHeight,
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: showTimeSlots ? 45.0 : 30.0,
-                alignment: Alignment.center,
-                child: Text(
-                  '日期',
-                  style: TextStyle(
-                    fontSize: getAdaptiveFontSize(13),
-                    fontWeight: FontWeight.w500,
-                  ),
+    return Container(
+      height: 55.h,
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: (showTimeSlots ? 45 : 30).w,
+            child: Center(
+              child: Text(
+                '日期',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              ...List.generate(visibleDays.length, (index) {
-                final date = dates[index];
-                final isToday = _isToday(date);
-
-                return Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          alignment: Alignment.center,
-                          child: Text(
-                            '周${visibleDays[index]}',
-                            style: TextStyle(
-                              fontSize: getAdaptiveFontSize(15),
-                              fontWeight:
-                                  isToday ? FontWeight.bold : FontWeight.w500,
-                              color: isToday ? Colors.red : Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Container(
-                          alignment: Alignment.center,
-                          child: Text(
-                            '${date.month}/${date.day}',
-                            style: TextStyle(
-                              fontSize: getAdaptiveFontSize(13),
-                              color: isToday ? Colors.red : Colors.grey,
-                              fontWeight:
-                                  isToday ? FontWeight.bold : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-            ],
+            ),
           ),
-        );
-      },
+          ...List.generate(visibleDays.length, (index) {
+            final date = dates[index];
+            final isToday = _isToday(date);
+
+            return Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Text(
+                        '周${visibleDays[index]}',
+                        style: TextStyle(
+                          fontSize: showWeekend ? 13.sp : 15.sp,
+                          fontWeight:
+                              isToday ? FontWeight.bold : FontWeight.w500,
+                          color: isToday ? Colors.red : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${date.month}/${date.day}',
+                        style: TextStyle(
+                          fontSize: showWeekend ? 12.sp : 13.sp,
+                          color: isToday ? Colors.red : Colors.grey,
+                          fontWeight:
+                              isToday ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 
   /// 构建课程单元格
-  Widget _buildCourseCell(Map<String, dynamic>? course, BuildContext context) {
-    if (course == null) return Container();
-
+  Widget _buildCourseCell(BuildContext context, Map<String, dynamic> course) {
     // 检查课程是否在当前周显示
     if (!List<int>.from(course['weeks'] ?? []).contains(week)) {
       return Container();
     }
 
-    final getAdaptiveFontSize = getAdaptiveFontSizeCalculator(context);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final sizeFactor = screenWidth / 375.0;
-
-    return Container(
-      margin: const EdgeInsets.all(1),
-      padding: EdgeInsets.symmetric(
-        horizontal: 4 * sizeFactor.clamp(1.0, 1.5),
-        vertical: 1 * sizeFactor.clamp(1.0, 1.5),
+    return GestureDetector(
+      onTap: () => showCourseInfo(
+        context,
+        course,
+        themeColor: themeColor,
+        onCourseUpdated: onCourseUpdated,
+        onCourseDeleted: onCourseDeleted,
       ),
-      decoration: BoxDecoration(
-        color: Color.fromRGBO(
-          course['color'][0],
-          course['color'][1],
-          course['color'][2],
-          1,
-        ),
-        borderRadius: BorderRadius.circular(2 * sizeFactor.clamp(1.0, 1.5)),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.white24,
+      child: Container(
+        margin: EdgeInsets.all(1.r),
+        padding: EdgeInsets.all(4.r),
+        decoration: BoxDecoration(
+          color: Color.fromRGBO(
+            course['color'][0],
+            course['color'][1],
+            course['color'][2],
+            1,
           ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () => showCourseInfo(
-          context,
-          course,
-          themeColor: themeColor,
-          onCourseUpdated: onCourseUpdated,
-          onCourseDeleted: onCourseDeleted,
+          borderRadius: BorderRadius.circular(4.r),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    flex: 2,
-                    child: Text(
-                      course['courseName'] ?? '未输入课程名',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: getAdaptiveFontSize(15),
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (course['teacherName']?.isNotEmpty ?? false)
-                    Flexible(
-                      child: Text(
-                        '@${course['teacherName']}',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: getAdaptiveFontSize(12),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
+            Flexible(
+              flex: 2,
+              child: Text(
+                course['courseName'] ?? '未输入课程名',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: showWeekend ? 13.sp : 14.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: showWeekend ? 3 : 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            if (course['teacherName']?.isNotEmpty ?? false)
+              Flexible(
+                child: Text(
+                  '@${course['teacherName']}',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: showWeekend ? 10.sp : 11.sp,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             Text(
               _formatWeeks(List<int>.from(course['weeks'] ?? [])),
               style: TextStyle(
                 color: Colors.white,
-                fontSize: getAdaptiveFontSize(11),
+                fontSize: showWeekend ? 10.sp : 11.sp,
                 fontWeight: FontWeight.bold,
               ),
               maxLines: 1,
@@ -312,47 +266,6 @@ class CourseTable extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  /// 格式化周次显示
-  String _formatWeeks(List<int> weeks) {
-    if (weeks.isEmpty) return '';
-
-    weeks.sort();
-    List<String> ranges = [];
-    int start = weeks.first;
-    int end = weeks.first;
-
-    for (int i = 1; i < weeks.length; i++) {
-      if (weeks[i] == end + 1) {
-        end = weeks[i];
-      } else {
-        ranges.add(start == end ? '$start周' : '$start-$end周');
-        start = weeks[i];
-        end = weeks[i];
-      }
-    }
-    ranges.add(start == end ? '$start周' : '$start-$end周');
-
-    return ranges.join('，');
-  }
-
-  /// 检查是否是今天
-  bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
-  }
-
-  /// 获取课程开始时间
-  int _getStartTime(List<dynamic> times, int col) {
-    var time = times.firstWhere(
-      (time) => TimeUtils.getDayValue(time[0].toString()) == col + 1,
-      orElse: () => List<dynamic>.empty(),
-    );
-    if (time is! List || time.isEmpty) return 999;
-    return TimeUtils.getClassValue(time[1].toString());
   }
 
   /// 构建课程格子列表
@@ -374,35 +287,10 @@ class CourseTable extends StatelessWidget {
     for (int row = 0; row < 10; row++) {
       if (occupiedSlots.contains(row)) continue;
 
-      Map<String, dynamic>? courseForThisSlot;
-      List<dynamic>? courseTime;
-
-      // 查找当前时间段的课程
-      for (var course in columnCourses) {
-        var time = course['times'].firstWhere((time) {
-          if (time is! List || time.length < 3) return false;
-          if (TimeUtils.getDayValue(time[0].toString()) != col + 1)
-            return false;
-
-          int startClass = TimeUtils.getClassValue(time[1].toString());
-          int endClass = TimeUtils.getClassValue(time[2].toString());
-
-          if (!TimeUtils.isValidTimeRange(startClass, endClass)) return false;
-
-          return row + 1 >= startClass && row + 1 <= endClass;
-        }, orElse: () => List<dynamic>.empty());
-
-        if (time is List && time.isNotEmpty) {
-          courseForThisSlot = course;
-          courseTime = time;
-          break;
-        }
-      }
-
-      if (courseForThisSlot != null && courseTime != null) {
-        int startClass = TimeUtils.getClassValue(courseTime[1].toString());
-        int endClass = TimeUtils.getClassValue(courseTime[2].toString());
-        int duration = endClass - startClass + 1;
+      final courseInfo = _findCourseForSlot(columnCourses, col, row);
+      if (courseInfo != null) {
+        final (course, startClass, endClass) = courseInfo;
+        final duration = endClass - startClass + 1;
 
         // 标记被占用的时间段
         for (int i = startClass - 1; i < endClass; i++) {
@@ -417,7 +305,7 @@ class CourseTable extends StatelessWidget {
                   ? Border.all(color: Colors.grey[200]!)
                   : Border.all(color: Colors.transparent),
             ),
-            child: _buildCourseCell(courseForThisSlot, context),
+            child: _buildCourseCell(context, course),
           ),
         ));
       } else {
@@ -436,11 +324,88 @@ class CourseTable extends StatelessWidget {
     return cells;
   }
 
+  /// 查找指定时间段的课程
+  (Map<String, dynamic>, int, int)? _findCourseForSlot(
+    List<Map<String, dynamic>> courses,
+    int col,
+    int row,
+  ) {
+    for (var course in courses) {
+      var time = course['times'].firstWhere((time) {
+        if (time is! List || time.length < 3) return false;
+        if (TimeUtils.getDayValue(time[0].toString()) != col + 1) return false;
+
+        int startClass = TimeUtils.getClassValue(time[1].toString());
+        int endClass = TimeUtils.getClassValue(time[2].toString());
+
+        if (!TimeUtils.isValidTimeRange(startClass, endClass)) return false;
+
+        return row + 1 >= startClass && row + 1 <= endClass;
+      }, orElse: () => List<dynamic>.empty());
+
+      if (time is List && time.isNotEmpty) {
+        int startClass = TimeUtils.getClassValue(time[1].toString());
+        int endClass = TimeUtils.getClassValue(time[2].toString());
+        return (course, startClass, endClass);
+      }
+    }
+    return null;
+  }
+
+  /// 获取课程开始时间
+  int _getStartTime(List<dynamic> times, int col) {
+    var time = times.firstWhere(
+      (time) => TimeUtils.getDayValue(time[0].toString()) == col + 1,
+      orElse: () => List<dynamic>.empty(),
+    );
+    if (time is! List || time.isEmpty) return 999;
+    return TimeUtils.getClassValue(time[1].toString());
+  }
+
+  /// 检查是否是今天
+  bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
+  }
+
+  /// 格式化周次显示
+  String _formatWeeks(List<int> weeks) {
+    if (weeks.isEmpty) return '';
+
+    weeks.sort();
+    List<String> ranges = [];
+    List<int> continuous = [];
+    int? lastNum;
+
+    for (int week in weeks) {
+      if (lastNum != null && week != lastNum + 1) {
+        if (continuous.length >= 3) {
+          ranges.add('${continuous.first}-${continuous.last}周');
+        } else {
+          ranges.addAll(continuous.map((n) => '$n'));
+        }
+        continuous = [];
+      }
+      continuous.add(week);
+      lastNum = week;
+    }
+
+    if (continuous.isNotEmpty) {
+      if (continuous.length >= 3) {
+        ranges.add('${continuous.first}-${continuous.last}周');
+      } else {
+        ranges.addAll(continuous.map((n) => '$n'));
+      }
+    }
+
+    return '${ranges.join(',')}周';
+  }
+
   @override
   Widget build(BuildContext context) {
     final dates = WeekManager.getWeekDates(currentSemester, week);
-    debugPrint(
-        '周次: $week, 日期: ${dates.map((d) => '${d.month}/${d.day}').join(', ')}');
 
     return Column(
       children: [

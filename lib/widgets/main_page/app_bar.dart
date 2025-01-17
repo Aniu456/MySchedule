@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 //顶部栏组件
 class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -23,23 +24,12 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.showWeekend,
   });
 
-  /// 获取自适应字体大小
-  double getAdaptiveFontSize(BuildContext context, double baseSize) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final fontSizeFactor = screenWidth / 375.0;
-    final size = baseSize * fontSizeFactor;
-    return size.clamp(baseSize * 0.8, baseSize * 1.4);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final adaptiveHeight = kToolbarHeight *
-        (MediaQuery.of(context).size.width / 375.0).clamp(1.0, 1.3);
-
     return AppBar(
       elevation: 0,
       backgroundColor: themeColor,
-      toolbarHeight: adaptiveHeight,
+      toolbarHeight: kToolbarHeight.h,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -48,7 +38,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Text(
               formattedDate,
               style: TextStyle(
-                fontSize: getAdaptiveFontSize(context, 15.5),
+                fontSize: 15.5.sp,
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
               ),
@@ -60,42 +50,39 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: <Widget>[
         IconButton(
-          iconSize: getAdaptiveFontSize(context, 24),
-          padding: EdgeInsets.all(getAdaptiveFontSize(context, 8)),
+          iconSize: 24.sp,
+          padding: EdgeInsets.all(8.r),
           icon: const Icon(Icons.add, color: Colors.white),
           onPressed: onAddCourse,
         ),
         IconButton(
-          iconSize: getAdaptiveFontSize(context, 24),
-          padding: EdgeInsets.all(getAdaptiveFontSize(context, 8)),
+          iconSize: 24.sp,
+          padding: EdgeInsets.all(8.r),
           icon: Icon(
             showWeekend ? Icons.weekend : Icons.weekend_outlined,
             color: Colors.white,
           ),
           onPressed: onToggleWeekend,
         ),
-        SizedBox(width: getAdaptiveFontSize(context, 8)),
+        SizedBox(width: 8.w),
       ],
     );
   }
 
   Widget _buildWeekDisplay(BuildContext context) {
-    final containerPadding = EdgeInsets.symmetric(
-      horizontal: getAdaptiveFontSize(context, 6),
-      vertical: getAdaptiveFontSize(context, 4),
-    );
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
           onTap: onSemesterTap,
           child: Container(
-            padding: containerPadding,
+            padding: EdgeInsets.symmetric(
+              horizontal: 6.w,
+              vertical: 4.h,
+            ),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius:
-                  BorderRadius.circular(getAdaptiveFontSize(context, 16)),
+              borderRadius: BorderRadius.circular(16.r),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -103,26 +90,28 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                 Text(
                   "$currentSemester",
                   style: TextStyle(
-                    fontSize: getAdaptiveFontSize(context, 14),
+                    fontSize: 14.sp,
                     color: Colors.white,
                   ),
                 ),
                 Icon(
                   Icons.arrow_drop_down,
                   color: Colors.white,
-                  size: getAdaptiveFontSize(context, 16),
+                  size: 16.sp,
                 ),
               ],
             ),
           ),
         ),
-        SizedBox(width: getAdaptiveFontSize(context, 4)),
+        SizedBox(width: 4.w),
         Container(
-          padding: containerPadding,
+          padding: EdgeInsets.symmetric(
+            horizontal: 6.w,
+            vertical: 4.h,
+          ),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
-            borderRadius:
-                BorderRadius.circular(getAdaptiveFontSize(context, 16)),
+            borderRadius: BorderRadius.circular(16.r),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -131,24 +120,24 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
               Text(
                 "第",
                 style: TextStyle(
-                  fontSize: getAdaptiveFontSize(context, 13),
+                  fontSize: 13.sp,
                   color: Colors.white,
                 ),
               ),
-              SizedBox(width: getAdaptiveFontSize(context, 4)),
+              SizedBox(width: 4.w),
               Text(
                 currentWeek.toString(),
                 style: TextStyle(
-                  fontSize: getAdaptiveFontSize(context, 16),
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              SizedBox(width: getAdaptiveFontSize(context, 4)),
+              SizedBox(width: 4.w),
               Text(
                 "周",
                 style: TextStyle(
-                  fontSize: getAdaptiveFontSize(context, 13),
+                  fontSize: 13.sp,
                   color: Colors.white,
                 ),
               ),
@@ -160,5 +149,5 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => Size.fromHeight(kToolbarHeight.h);
 }

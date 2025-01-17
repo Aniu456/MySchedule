@@ -35,12 +35,16 @@ class _CourseInfoDialogState extends State<CourseInfoDialog> {
   late List<List<dynamic>> _times;
   late List<int> _weeks;
 
+  // 添加原始课程名称记录
+  late final String _originalCourseName;
+
   /// 是否处于编辑状态
   bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
+    _originalCourseName = widget.course['courseName'];
     _initializeData();
   }
 
@@ -213,6 +217,7 @@ class _CourseInfoDialogState extends State<CourseInfoDialog> {
     }
 
     final updatedCourse = {
+      'originalCourseName': _originalCourseName,
       'courseName': _courseName,
       'teacherName': _teacherName,
       'remarks': _remarks,

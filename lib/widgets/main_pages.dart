@@ -288,6 +288,29 @@ class _MainPageState extends State<MainPage>
     });
   }
 
+  /// 处理课程更新
+  Future<void> _handleCourseUpdate(Map<String, dynamic> updatedCourse) async {
+    try {
+      setState(() {
+        final index = courses.indexWhere((c) =>
+            c['courseName'] == updatedCourse['originalCourseName'] &&
+            c['semester'] == updatedCourse['semester']);
+
+        if (index != -1) {
+          // 创建更新后的课程数据（不包含 originalCourseName）
+          final courseToUpdate = Map<String, dynamic>.from(updatedCourse)
+            ..remove('originalCourseName');
+          courses[index] = courseToUpdate;
+        }
+      });
+      await CourseStorage.saveCourses(courses);
+      _showMessage('课程更新成功', isError: false);
+    } catch (e) {
+      debugPrint('Error updating course: $e');
+      _showMessage('更新课程失败');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -311,17 +334,7 @@ class _MainPageState extends State<MainPage>
           showGrid: _showGrid,
           themeColor: _themeColor,
           courses: courses,
-          onCourseUpdated: (updatedCourse) async {
-            setState(() {
-              final index = courses.indexWhere((c) =>
-                  c['courseName'] == updatedCourse['courseName'] &&
-                  c['semester'] == updatedCourse['semester']);
-              if (index != -1) {
-                courses[index] = updatedCourse;
-              }
-            });
-            await CourseStorage.saveCourses(courses);
-          },
+          onCourseUpdated: _handleCourseUpdate,
           onCourseDeleted: (course) async {
             setState(() {
               courses.removeWhere((c) =>
@@ -329,6 +342,7 @@ class _MainPageState extends State<MainPage>
                   c['semester'] == course['semester']);
             });
             await CourseStorage.saveCourses(courses);
+            _showMessage('课程删除成功', isError: false);
           },
           onWeekChange: (week) => setState(() => _week = week),
         ),
