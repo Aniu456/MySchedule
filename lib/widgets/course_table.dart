@@ -240,6 +240,7 @@ class CourseTable extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            SizedBox(height: 12.h),
             if (course['teacherName']?.isNotEmpty ?? false)
               Flexible(
                 child: Text(
@@ -256,7 +257,7 @@ class CourseTable extends StatelessWidget {
               _formatWeeks(List<int>.from(course['weeks'] ?? [])),
               style: TextStyle(
                 color: Colors.white,
-                fontSize: showWeekend ? 10.sp : 11.sp,
+                fontSize: showWeekend ? 10.sp : 12.5.sp,
                 fontWeight: FontWeight.bold,
               ),
               maxLines: 1,
@@ -381,8 +382,8 @@ class CourseTable extends StatelessWidget {
 
     for (int week in weeks) {
       if (lastNum != null && week != lastNum + 1) {
-        if (continuous.length >= 3) {
-          ranges.add('${continuous.first}-${continuous.last}周');
+        if (continuous.length >= 2) {
+          ranges.add('${continuous.first}-${continuous.last}');
         } else {
           ranges.addAll(continuous.map((n) => '$n'));
         }
@@ -393,8 +394,8 @@ class CourseTable extends StatelessWidget {
     }
 
     if (continuous.isNotEmpty) {
-      if (continuous.length >= 3) {
-        ranges.add('${continuous.first}-${continuous.last}周');
+      if (continuous.length >= 2) {
+        ranges.add('${continuous.first}-${continuous.last}');
       } else {
         ranges.addAll(continuous.map((n) => '$n'));
       }

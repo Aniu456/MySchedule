@@ -82,7 +82,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(4.r),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -111,7 +111,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(4.r),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -124,7 +124,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                   color: Colors.white,
                 ),
               ),
-              SizedBox(width: 4.w),
+              SizedBox(width: 3.w),
               Text(
                 currentWeek.toString(),
                 style: TextStyle(
@@ -133,7 +133,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                   color: Colors.white,
                 ),
               ),
-              SizedBox(width: 4.w),
+              SizedBox(width: 3.w),
               Text(
                 "周",
                 style: TextStyle(
