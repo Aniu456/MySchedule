@@ -66,29 +66,35 @@ class CourseTable extends StatelessWidget {
       width: showTimeSlots ? 45.0 : 30.0,
       child: Column(
         children: List.generate(10, (index) {
-          return SizedBox(
-            height: 60.0,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '${index + 1}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (showTimeSlots) ...[
+          return Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                border: showGrid
+                    ? Border.all(color: Colors.grey[200]!)
+                    : Border.all(color: Colors.transparent),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   Text(
-                    _timeSlots[index][0],
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    '${index + 1}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  Text(
-                    _timeSlots[index][1],
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
+                  if (showTimeSlots) ...[
+                    Text(
+                      _timeSlots[index][0],
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    Text(
+                      _timeSlots[index][1],
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           );
         }),
@@ -173,8 +179,6 @@ class CourseTable extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: Colors.white24,
-            // blurRadius: 2,
-            // offset: Offset(0, 1),
           ),
         ],
       ),
@@ -193,38 +197,40 @@ class CourseTable extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    course['courseName'] ?? '未输入课程名',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                  Flexible(
+                    child: Text(
+                      course['courseName'] ?? '未输入课程名',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: showWeekend ? 2 : 3,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: showWeekend ? 3 : 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
+                  if (course['teacherName']?.isNotEmpty ?? false)
+                    Flexible(
+                      child: Text(
+                        '@${course['teacherName']}',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: showWeekend ? 11 : 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                 ],
               ),
             ),
-            if (course['teacherName']?.isNotEmpty ?? false)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Text(
-                  '@${course['teacherName']}',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: showWeekend ? 11 : 12,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
             Text(
               _formatWeeks(List<int>.from(course['weeks'] ?? [])),
               style: TextStyle(
-                  color: Colors.white,
-                  fontSize: showWeekend ? 10 : 13,
-                  fontWeight: FontWeight.bold),
+                color: Colors.white,
+                fontSize: showWeekend ? 10 : 11,
+                fontWeight: FontWeight.bold,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -329,22 +335,25 @@ class CourseTable extends StatelessWidget {
           occupiedSlots.add(i);
         }
 
-        cells.add(Container(
-          height: 60.0 * duration,
-          decoration: BoxDecoration(
-            border: showGrid
-                ? Border.all(color: Colors.grey[200]!)
-                : Border.all(color: Colors.transparent),
+        cells.add(Expanded(
+          flex: duration,
+          child: Container(
+            decoration: BoxDecoration(
+              border: showGrid
+                  ? Border.all(color: Colors.grey[200]!)
+                  : Border.all(color: Colors.transparent),
+            ),
+            child: _buildCourseCell(courseForThisSlot, context),
           ),
-          child: _buildCourseCell(courseForThisSlot, context),
         ));
       } else {
-        cells.add(Container(
-          height: 60.0,
-          decoration: BoxDecoration(
-            border: showGrid
-                ? Border.all(color: Colors.grey[200]!)
-                : Border.all(color: Colors.transparent),
+        cells.add(Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              border: showGrid
+                  ? Border.all(color: Colors.grey[200]!)
+                  : Border.all(color: Colors.transparent),
+            ),
           ),
         ));
       }
@@ -363,41 +372,38 @@ class CourseTable extends StatelessWidget {
       children: [
         _buildHeader(dates),
         Expanded(
-          child: SingleChildScrollView(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTimeColumn(),
-                Expanded(
-                  child: Row(
-                    children: List.generate(showWeekend ? 7 : 5, (col) {
-                      // 获取这一列的所有课程
-                      final columnCourses = courses.where((course) {
-                        if (course['semester'] != currentSemester) return false;
-                        if (!course['weeks'].contains(week)) return false;
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildTimeColumn(),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: List.generate(showWeekend ? 7 : 5, (col) {
+                    // 获取这一列的所有课程
+                    final columnCourses = courses.where((course) {
+                      if (course['semester'] != currentSemester) return false;
+                      if (!course['weeks'].contains(week)) return false;
 
-                        return course['times'].any((time) {
-                          if (time is! List || time.length < 3) return false;
-                          final dayNum =
-                              TimeUtils.getDayValue(time[0].toString());
-                          return dayNum == col + 1;
-                        });
-                      }).toList();
+                      return course['times'].any((time) {
+                        if (time is! List || time.length < 3) return false;
+                        final dayNum =
+                            TimeUtils.getDayValue(time[0].toString());
+                        return dayNum == col + 1;
+                      });
+                    }).toList();
 
-                      return SizedBox(
-                        width: (MediaQuery.of(context).size.width -
-                                (showTimeSlots ? 45.0 : 30.0)) /
-                            (showWeekend ? 7 : 5),
-                        child: Column(
-                          children:
-                              _buildCourseCells(columnCourses, col, context),
-                        ),
-                      );
-                    }),
-                  ),
+                    return Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children:
+                            _buildCourseCells(columnCourses, col, context),
+                      ),
+                    );
+                  }),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],

@@ -84,28 +84,33 @@ class _SlideTableState extends State<SlideTable> {
 
   @override
   Widget build(BuildContext context) {
-    return PageView.builder(
-      controller: _pageController,
-      onPageChanged: (page) {
-        if (mounted) {
-          widget.onWeekChange(page + 1);
-        }
-      },
-      itemCount: 20,
-      itemBuilder: (context, index) {
-        final week = index + 1;
-        return CourseTable(
-          week: week,
-          currentSemester: widget.currentSemester,
-          showWeekend: widget.showWeekend,
-          showTimeSlots: widget.showTimeSlots,
-          showGrid: widget.showGrid,
-          themeColor: widget.themeColor,
-          courses: widget.courses,
-          onCourseUpdated: widget.onCourseUpdated,
-          onCourseDeleted: widget.onCourseDeleted,
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.only(
+        bottom: kFloatingActionButtonMargin + 64, // 为浮动按钮预留空间
+      ),
+      child: PageView.builder(
+        controller: _pageController,
+        onPageChanged: (page) {
+          if (mounted) {
+            widget.onWeekChange(page + 1);
+          }
+        },
+        itemCount: 20,
+        itemBuilder: (context, index) {
+          final week = index + 1;
+          return CourseTable(
+            week: week,
+            currentSemester: widget.currentSemester,
+            showWeekend: widget.showWeekend,
+            showTimeSlots: widget.showTimeSlots,
+            showGrid: widget.showGrid,
+            themeColor: widget.themeColor,
+            courses: widget.courses,
+            onCourseUpdated: widget.onCourseUpdated,
+            onCourseDeleted: widget.onCourseDeleted,
+          );
+        },
+      ),
     );
   }
 }
