@@ -1,6 +1,6 @@
 # 我的课程表app
 
-欢迎访问https://gitee.com/a-niutongzhi
+欢迎访问https://github.com/Aniu456/MySchedule
 
 # 运行如下
  (图片若有bug，已修复)
