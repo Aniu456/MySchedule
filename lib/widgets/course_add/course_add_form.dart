@@ -77,12 +77,12 @@ class CourseAddForm extends StatelessWidget {
           color: currentColor,
           shape: BoxShape.circle,
           border: Border.all(color: Colors.grey[300]!),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
+              color: Color.fromRGBO(255, 255, 255, 0.2),
               spreadRadius: 2,
               blurRadius: 4,
-              offset: const Offset(0, 2),
+              offset: Offset(0, 2),
             ),
           ],
         ),

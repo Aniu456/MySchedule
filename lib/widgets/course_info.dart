@@ -221,7 +221,7 @@ class _CourseInfoDialogState extends State<CourseInfoDialog> {
       'courseName': _courseName,
       'teacherName': _teacherName,
       'remarks': _remarks,
-      'color': [_currentColor.red, _currentColor.green, _currentColor.blue],
+      'color': [_currentColor.r, _currentColor.g, _currentColor.b],
       'times': validTimes,
       'weeks': _weeks,
       'semester': widget.course['semester'],

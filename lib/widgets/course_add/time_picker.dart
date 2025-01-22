@@ -36,7 +36,12 @@ class TimePickerWidget extends StatelessWidget {
                 .where((time) => time.isNotEmpty)
                 .map(
                   (time) => Chip(
-                    backgroundColor: currentColor.withOpacity(0.1),
+                    backgroundColor: Color.fromRGBO(
+                      currentColor.r.toInt(),
+                      currentColor.g.toInt(),
+                      currentColor.b.toInt(),
+                      0.1,
+                    ),
                     label: Text(
                       TimeUtils.formatTimeRange(time),
                       style: TextStyle(color: currentColor),

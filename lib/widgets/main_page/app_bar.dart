@@ -81,7 +81,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
               vertical: 4.h,
             ),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: const Color.fromRGBO(255, 255, 255, 0.2),
               borderRadius: BorderRadius.circular(4.r),
             ),
             child: Row(
@@ -110,7 +110,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
             vertical: 4.h,
           ),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
+            color: const Color.fromRGBO(255, 255, 255, 0.2),
             borderRadius: BorderRadius.circular(4.r),
           ),
           child: Row(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 /// 周次选择器组件
 /// 用于显示已选择的周次，以连续区间的形式展示
@@ -57,7 +56,12 @@ class WeekPickerWidget extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: currentColor.withOpacity(0.1),
+            color: Color.fromRGBO(
+              currentColor.r.toInt(),
+              currentColor.g.toInt(),
+              currentColor.b.toInt(),
+              0.1,
+            ),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(

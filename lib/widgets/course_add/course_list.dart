@@ -50,7 +50,12 @@ class CourseList extends StatelessWidget {
                   ),
                 ),
                 style: TextButton.styleFrom(
-                  backgroundColor: themeColor.withOpacity(0.1),
+                  backgroundColor: Color.fromRGBO(
+                    themeColor.r.toInt(),
+                    themeColor.g.toInt(),
+                    themeColor.b.toInt(),
+                    0.1,
+                  ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
