@@ -133,21 +133,8 @@ class SemesterUtils {
   static Future<int> getCurrentSemester() async {
     final now = DateTime.now();
 
-    // 获取第一学期开始日期
-    DateTime? firstSemesterDate =
-        await CourseStorageHive.getSemesterStartDate(1);
-
-    // 如果第一学期未设置，使用默认计算方法
-    if (firstSemesterDate == null) {
-      int defaultSemester = _getDefaultCurrentSemester();
-      // 确保在1-10范围内
-      return defaultSemester.clamp(1, 10);
-    }
-
-    // 使用确定的方法，直接逐个检查所有已设置的学期
+    // 获取所有已配置的学期
     List<int> configuredSemesters = [];
-
-    // 首先收集所有已设置的学期号
     for (int i = 1; i <= 10; i++) {
       if (await CourseStorageHive.hasSemesterStartDate(i)) {
         configuredSemesters.add(i);
@@ -155,47 +142,40 @@ class SemesterUtils {
     }
 
     if (configuredSemesters.isEmpty) {
-      return 1;
+      return 1; // 默认返回第一学期
     }
 
-    // 排序学期号，确保按顺序处理
+    // 按顺序处理学期
     configuredSemesters.sort();
 
-    // 获取所有已设置学期的开始日期
-    Map<int, DateTime> semesterStartDates = {};
-    for (int sem in configuredSemesters) {
-      DateTime? date = await CourseStorageHive.getSemesterStartDate(sem);
-      if (date != null) {
-        semesterStartDates[sem] = date;
-      }
-    }
-
-    // 找出当前日期所在的学期
-    int currentSemester = configuredSemesters.first; // 默认为第一个已配置的学期
+    // 查找当前日期所在的学期
+    // 将所有学期按开始日期排序，找到第一个开始日期大于当前日期的学期
+    // 上一个学期就是当前所在学期
+    int currentSemester = configuredSemesters.first;
 
     for (int i = 0; i < configuredSemesters.length; i++) {
       int sem = configuredSemesters[i];
-      DateTime startDate = semesterStartDates[sem]!;
+      DateTime? startDate = await CourseStorageHive.getSemesterStartDate(sem);
 
-      // 如果是最后一个已配置的学期
+      if (startDate == null) continue;
+
+      // 如果是最后一个学期或当前日期在这个学期的开始日期之后但在下一个学期之前
       if (i == configuredSemesters.length - 1) {
-        // 检查当前日期是否在该学期之后
-        if (now.isAfter(startDate)) {
-          // 如果是最后一个学期且在其开始日期之后，就是这个学期
+        if (now.isAfter(startDate) || now.isAtSameMomentAs(startDate)) {
           currentSemester = sem;
         }
-        break;
-      }
+      } else {
+        int nextSem = configuredSemesters[i + 1];
+        DateTime? nextStartDate =
+            await CourseStorageHive.getSemesterStartDate(nextSem);
 
-      // 获取下一个学期的开始日期
-      int nextSem = configuredSemesters[i + 1];
-      DateTime nextStartDate = semesterStartDates[nextSem]!;
+        if (nextStartDate == null) continue;
 
-      // 检查当前日期是否在当前学期范围内
-      if ((now.isAfter(startDate) || now.isAtSameMomentAs(startDate)) &&
-          now.isBefore(nextStartDate)) {
-        currentSemester = sem;
-        break;
+        if ((now.isAfter(startDate) || now.isAtSameMomentAs(startDate)) &&
+            now.isBefore(nextStartDate)) {
+          currentSemester = sem;
+          break;
+        }
       }
     }
 
@@ -229,45 +209,6 @@ class SemesterUtils {
     final week = await calculateActualCurrentWeek(semester);
 
     return (semester, week);
-  }
-
-  /// 默认的当前学期计算方法
-  static int _getDefaultCurrentSemester() {
-    final now = DateTime.now();
-    final year = now.year;
-    final month = now.month;
-
-    // 2023-2024学年：
-    // 第1学期: 2023-09-01 至 2024-02-29
-    // 第2学期: 2024-03-01 至 2024-08-31
-
-    // 2024-2025学年：
-    // 第3学期: 2024-09-01 至 2025-02-28
-    // 第4学期: 2025-03-01 至 2025-08-31
-
-    // 计算从2023年起的年数差
-    int yearDiff = year - 2023;
-
-    // 限制最大为10个学期
-    if (yearDiff > 4) {
-      return 10;
-    }
-
-    // 根据月份判断是春季学期还是秋季学期
-    bool isSpring = month >= 3 && month <= 8;
-
-    // 计算学期
-    int semester;
-    if (isSpring) {
-      // 春季学期 (偶数学期): 2,4,6,8,...
-      semester = yearDiff * 2 + 2;
-    } else {
-      // 秋季学期 (奇数学期): 1,3,5,7,...
-      semester = yearDiff * 2 + 1;
-    }
-
-    // 确保不超过10学期
-    return semester.clamp(1, 10);
   }
 
   /// 设置学期开始日期

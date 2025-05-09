@@ -15,25 +15,7 @@ void main() async {
   await Hive.openBox('appSettings');
   await Hive.openBox('courses'); // 打开课程盒子
 
-  // 预加载中文本地化资源
-  await initializeLocalizations();
-
   runApp(const MyApp());
-}
-
-/// 初始化本地化资源
-Future<void> initializeLocalizations() async {
-  // 创建中文本地化代理
-  const zhDelegate = GlobalMaterialLocalizations.delegate;
-  const zhWidgetsDelegate = GlobalWidgetsLocalizations.delegate;
-  const zhCupertinoDelegate = GlobalCupertinoLocalizations.delegate;
-
-  // 预加载中文资源
-  await Future.wait([
-    zhDelegate.load(const Locale('zh')),
-    zhWidgetsDelegate.load(const Locale('zh')),
-    zhCupertinoDelegate.load(const Locale('zh')),
-  ]);
 }
 
 /// 应用程序根组件

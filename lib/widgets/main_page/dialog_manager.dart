@@ -5,12 +5,17 @@ import '../../utils/color_utils.dart';
 /// 负责处理应用中的各种对话框显示
 class DialogManager {
   final BuildContext context;
-  final Color themeColor;
+  Color themeColor;
 
   DialogManager({
     required this.context,
     required this.themeColor,
   });
+
+  /// 更新主题色
+  void updateThemeColor(Color newColor) {
+    themeColor = newColor;
+  }
 
   /// 显示颜色选择器
   Future<Color?> showColorPicker() async {

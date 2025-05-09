@@ -5,12 +5,17 @@ import '../../utils/color_utils.dart';
 /// 负责处理消息提示和通知显示
 class NotificationManager {
   final BuildContext context;
-  final Color themeColor;
+  Color themeColor;
 
   NotificationManager({
     required this.context,
     required this.themeColor,
   });
+
+  /// 更新主题色
+  void updateThemeColor(Color newColor) {
+    themeColor = newColor;
+  }
 
   /// 显示消息提示
   void showMessage(String message, {bool isError = true}) {

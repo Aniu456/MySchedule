@@ -66,8 +66,17 @@ class CourseManager {
   Future<bool> addCourses(List<Map<String, dynamic>> currentCourses,
       List<Map<String, dynamic>> newCourses) async {
     try {
+      // 添加新课程到当前课程列表
       currentCourses.addAll(newCourses);
+
+      // 保存到存储
       await CourseStorageHive.saveCourses(currentCourses);
+
+      // 调用setState强制更新UI
+      setState(() {
+        // 课程已添加到列表，这里只需触发UI刷新
+      });
+
       showMessage('成功添加 ${newCourses.length} 门课程', isError: false);
       return true;
     } catch (e) {

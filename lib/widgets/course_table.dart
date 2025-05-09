@@ -272,6 +272,24 @@ class CourseTable extends StatelessWidget {
       return Container();
     }
 
+    // 计算课程时长
+    int duration = 0;
+    for (var time in course['times']) {
+      if (time is List && time.length >= 3) {
+        int startClass = TimeUtils.getClassValue(time[1].toString());
+        int endClass = TimeUtils.getClassValue(time[2].toString());
+        int currentDuration = endClass - startClass + 1;
+        if (currentDuration > duration) {
+          duration = currentDuration;
+        }
+      }
+    }
+
+    // 根据课程时长调整布局
+    bool isSmallCard = duration == 1;
+    bool isLargeCard = duration >= 4;
+    bool needsCompactLayout = isSmallCard || isLargeCard;
+
     return GestureDetector(
       onTap: () => showCourseInfo(
         context,
@@ -291,8 +309,9 @@ class CourseTable extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Flexible(
-              flex: 2,
+            // 课程名称
+            Expanded(
+              flex: needsCompactLayout ? 1 : 2,
               child: Text(
                 course['courseName'] ?? '未输入课程名',
                 style: TextStyle(
@@ -300,32 +319,41 @@ class CourseTable extends StatelessWidget {
                   fontSize: showWeekend ? 13.sp : 14.sp,
                   fontWeight: FontWeight.bold,
                 ),
-                maxLines: showWeekend ? 3 : 2,
+                maxLines: needsCompactLayout ? 1 : (showWeekend ? 3 : 2),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            SizedBox(height: 12.h),
-            if (course['teacherName']?.isNotEmpty ?? false)
-              Flexible(
-                child: Text(
-                  '@${course['teacherName']}',
+
+            // 底部信息区域
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 教师姓名（如果有）- 只在不是小卡片时显示
+                if ((course['teacherName']?.isNotEmpty ?? false) &&
+                    !isSmallCard)
+                  Text(
+                    '@${course['teacherName']}',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: showWeekend ? 10.sp : 11.sp,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                // 周次信息
+                Text(
+                  _formatWeeks(List<int>.from(course['weeks'] ?? [])),
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: Colors.white,
                     fontSize: showWeekend ? 10.sp : 11.sp,
+                    fontWeight: FontWeight.bold,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            Text(
-              _formatWeeks(List<int>.from(course['weeks'] ?? [])),
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: showWeekend ? 10.sp : 12.5.sp,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              ],
             ),
           ],
         ),

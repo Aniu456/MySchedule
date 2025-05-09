@@ -9,7 +9,7 @@ class SemesterManager {
   final Function(String, {bool isError}) showMessage;
   final Function(void Function()) setState;
   final BuildContext context;
-  final Color themeColor;
+  Color themeColor;
 
   SemesterManager({
     required this.showMessage,
@@ -17,6 +17,11 @@ class SemesterManager {
     required this.context,
     required this.themeColor,
   });
+
+  /// 更新主题色
+  void updateThemeColor(Color newColor) {
+    themeColor = newColor;
+  }
 
   /// 处理学期变更
   Future<void> handleSemesterChange(

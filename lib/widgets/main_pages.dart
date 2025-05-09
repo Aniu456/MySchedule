@@ -154,8 +154,15 @@ class _MainPageState extends State<MainPage>
     );
 
     if (newCourses != null && newCourses is List && newCourses.isNotEmpty) {
-      await _courseManager.addCourses(
+      final success = await _courseManager.addCourses(
           courses, newCourses.cast<Map<String, dynamic>>());
+
+      // 添加课程成功后，强制更新UI
+      if (success) {
+        setState(() {
+          // 课程已在列表中更新，触发UI刷新
+        });
+      }
     }
   }
 
@@ -170,23 +177,10 @@ class _MainPageState extends State<MainPage>
     if (newColor != null) {
       setState(() => _themeColor = newColor);
 
-      // 更新管理器中的主题色
-      _notificationManager = NotificationManager(
-        context: context,
-        themeColor: _themeColor,
-      );
-
-      _dialogManager = DialogManager(
-        context: context,
-        themeColor: _themeColor,
-      );
-
-      _semesterManager = SemesterManager(
-        showMessage: _notificationManager.showMessage,
-        setState: setState,
-        context: context,
-        themeColor: _themeColor,
-      );
+      // 只更新主题色，而不是重新创建整个实例
+      _notificationManager.updateThemeColor(_themeColor);
+      _dialogManager.updateThemeColor(_themeColor);
+      _semesterManager.updateThemeColor(_themeColor);
     }
   }
 
