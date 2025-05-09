@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../utils/time_utils.dart';
+import '../utils/color_utils.dart';
 import 'course_add/course_add_form.dart';
 import 'course_add/time_picker.dart';
 import 'course_add/week_picker.dart';
@@ -140,31 +140,17 @@ class _CourseAddState extends State<CourseAdd> {
   }
 
   /// 显示颜色选择器
-  void _showColorPicker() {
+  void _showColorPicker() async {
     _unfocusAll();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('选择课程颜色'),
-        content: SingleChildScrollView(
-          child: BlockPicker(
-            pickerColor: _currentColor,
-            onColorChanged: (color) => setState(() => _currentColor = color),
-            availableColors: Colors.primaries,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('确定'),
-          ),
-        ],
-      ),
-    );
+
+    final selectedColor =
+        await ColorUtils.showColorPickerDialog(context, _currentColor);
+
+    if (selectedColor != null) {
+      setState(() {
+        _currentColor = selectedColor;
+      });
+    }
   }
 
   /// 显示学期选择对话框
@@ -220,7 +206,7 @@ class _CourseAddState extends State<CourseAdd> {
       'courseName': _courseName,
       'teacherName': _teacherName,
       'remarks': _remarks,
-      'color': [_currentColor.r, _currentColor.g, _currentColor.b],
+      'color': ColorUtils.colorToStorage(_currentColor),
       'times': validTimes,
       'weeks': _weeks,
       'semester': _semester,
@@ -231,7 +217,9 @@ class _CourseAddState extends State<CourseAdd> {
       _resetForm();
     });
 
-    _showMessage('${courseData['courseName']} 添加成功', isError: false);
+    // 使用固定主题颜色显示成功消息，避免颜色覆盖问题
+    _showMessage('${courseData['courseName']} 添加成功',
+        isError: false, useFixedColor: true);
   }
 
   /// 重置表单
@@ -240,7 +228,12 @@ class _CourseAddState extends State<CourseAdd> {
     _courseName = '';
     _teacherName = '';
     _remarks = '';
-    _currentColor = Colors.primaries[_courses.length % Colors.primaries.length];
+
+    // 每次添加新课程后选择新的默认颜色，避免所有课程使用相同颜色
+    // 使用基于已添加课程数量的颜色索引，确保颜色循环使用
+    int colorIndex = _courses.length % Colors.primaries.length;
+    _currentColor = Colors.primaries[colorIndex];
+
     _times = [[]];
     _weeks = [];
   }
@@ -255,28 +248,45 @@ class _CourseAddState extends State<CourseAdd> {
   }
 
   /// 显示提示消息
-  void _showMessage(String message, {bool isError = true}) {
+  void _showMessage(String message,
+      {bool isError = true, bool useFixedColor = false}) {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(message, textAlign: TextAlign.center),
-        backgroundColor: _currentColor,
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(milliseconds: isError ? 2000 : 1500),
-        margin: const EdgeInsets.only(
-          bottom: kFloatingActionButtonMargin + 10,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        action: SnackBarAction(
-          label: isError ? '知道了' : '好的',
-          textColor: Colors.white,
-          onPressed: () => messenger.hideCurrentSnackBar(),
-        ),
-      ),
-    );
+
+    // 确保颜色不是黑色，并且可以选择使用固定颜色
+    Color snackBarColor = useFixedColor
+        ? widget.themeColor
+        : ColorUtils.getSafeSnackBarColor(_currentColor,
+            fallbackColor: widget.themeColor);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      try {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(message, textAlign: TextAlign.center),
+            backgroundColor: snackBarColor,
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(milliseconds: isError ? 2000 : 1500),
+            margin: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 20.0,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            action: SnackBarAction(
+              label: isError ? '知道了' : '好的',
+              textColor: Colors.white,
+              onPressed: () => messenger.hideCurrentSnackBar(),
+            ),
+          ),
+        );
+      } catch (e) {
+        // 防止SnackBar显示错误
+      }
+    });
   }
 
   /// 构建卡片组件
@@ -382,10 +392,11 @@ class _CourseAddState extends State<CourseAdd> {
               if (_courses.isNotEmpty)
                 CourseList(
                   courses: _courses,
-                  themeColor: _currentColor,
+                  themeColor: widget.themeColor,
                   onFinish: _finishAndReturn,
                   onRemoveCourse: (index) =>
                       setState(() => _courses.removeAt(index)),
+                  useFixedColor: true, // 使用固定颜色，避免颜色覆盖问题
                 ),
               Expanded(
                 child: Form(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../utils/time_utils.dart';
 import 'course_info.dart';
-import 'main_page/week_manager.dart';
+import '../utils/color_utils.dart';
 
 /// 课程表组件
 /// 显示一周的课程安排，支持显示/隐藏周末、时间槽和网格
@@ -48,6 +48,12 @@ class CourseTable extends StatelessWidget {
   /// 课程删除回调
   final Function(Map<String, dynamic>) onCourseDeleted;
 
+  /// 周的日期范围
+  final List<DateTime> weekDates;
+
+  /// 是否正在加载日期
+  final bool isLoading;
+
   const CourseTable({
     super.key,
     required this.week,
@@ -59,6 +65,8 @@ class CourseTable extends StatelessWidget {
     required this.courses,
     required this.onCourseUpdated,
     required this.onCourseDeleted,
+    this.weekDates = const [],
+    this.isLoading = false,
   });
 
   /// 构建时间列
@@ -127,32 +135,93 @@ class CourseTable extends StatelessWidget {
   }
 
   /// 构建表头
-  Widget _buildHeader(List<DateTime> dates) {
+  Widget _buildHeader() {
     const weekdays = ["一", "二", "三", "四", "五", "六", "日"];
     final visibleDays = showWeekend ? weekdays : weekdays.sublist(0, 5);
 
+    // 如果日期正在加载或为空，显示占位符
+    if (isLoading || weekDates.isEmpty) {
+      return Container(
+        height: 55,
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: (showTimeSlots ? 45 : 30),
+              child: const Center(
+                child: Text(
+                  '日期',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+            ...List.generate(visibleDays.length, (index) {
+              return Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Container(
+                        alignment: Alignment.center,
+                        child: Text(
+                          '周${visibleDays[index]}',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        alignment: Alignment.center,
+                        child: const Text(
+                          '加载中...',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      );
+    }
+
     return Container(
-      height: 55.h,
+      height: 55,
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
       ),
       child: Row(
         children: [
           SizedBox(
-            width: (showTimeSlots ? 45 : 30).w,
-            child: Center(
+            width: (showTimeSlots ? 45 : 30),
+            child: const Center(
               child: Text(
                 '日期',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 13.sp,
+                  fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           ),
           ...List.generate(visibleDays.length, (index) {
-            final date = dates[index];
+            final date =
+                weekDates.length > index ? weekDates[index] : DateTime.now();
             final isToday = _isToday(date);
 
             return Expanded(
@@ -165,7 +234,7 @@ class CourseTable extends StatelessWidget {
                       child: Text(
                         '周${visibleDays[index]}',
                         style: TextStyle(
-                          fontSize: showWeekend ? 13.sp : 15.sp,
+                          fontSize: showWeekend ? 13 : 15,
                           fontWeight:
                               isToday ? FontWeight.bold : FontWeight.w500,
                           color: isToday ? Colors.red : Colors.black,
@@ -179,7 +248,7 @@ class CourseTable extends StatelessWidget {
                       child: Text(
                         '${date.month}/${date.day}',
                         style: TextStyle(
-                          fontSize: showWeekend ? 12.sp : 13.sp,
+                          fontSize: showWeekend ? 12 : 13,
                           color: isToday ? Colors.red : Colors.grey,
                           fontWeight:
                               isToday ? FontWeight.bold : FontWeight.normal,
@@ -215,12 +284,7 @@ class CourseTable extends StatelessWidget {
         margin: EdgeInsets.all(1.r),
         padding: EdgeInsets.all(4.r),
         decoration: BoxDecoration(
-          color: Color.fromRGBO(
-            course['color'][0],
-            course['color'][1],
-            course['color'][2],
-            1,
-          ),
+          color: _getCourseColor(course),
           borderRadius: BorderRadius.circular(4.r),
         ),
         child: Column(
@@ -404,13 +468,16 @@ class CourseTable extends StatelessWidget {
     return '${ranges.join(',')}周';
   }
 
+  /// 获取课程颜色，添加验证以避免黑色
+  Color _getCourseColor(Map<String, dynamic> course) {
+    return ColorUtils.storageToColor(course['color'], defaultColor: themeColor);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final dates = WeekManager.getWeekDates(currentSemester, week);
-
     return Column(
       children: [
-        _buildHeader(dates),
+        _buildHeader(),
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,

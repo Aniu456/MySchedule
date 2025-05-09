@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../utils/color_utils.dart';
 
-//已添加课程列表
+/// 已添加课程列表
 class CourseList extends StatelessWidget {
   final List<Map<String, dynamic>> courses;
   final Color themeColor;
   final Function() onFinish;
   final Function(int) onRemoveCourse;
+  final bool useFixedColor;
 
   const CourseList({
     super.key,
@@ -13,6 +15,7 @@ class CourseList extends StatelessWidget {
     required this.themeColor,
     required this.onFinish,
     required this.onRemoveCourse,
+    this.useFixedColor = false,
   });
 
   @override
@@ -51,9 +54,9 @@ class CourseList extends StatelessWidget {
                 ),
                 style: TextButton.styleFrom(
                   backgroundColor: Color.fromRGBO(
-                    themeColor.r.toInt(),
-                    themeColor.g.toInt(),
-                    themeColor.b.toInt(),
+                    themeColor.red,
+                    themeColor.green,
+                    themeColor.blue,
                     0.1,
                   ),
                   padding: const EdgeInsets.symmetric(
@@ -73,12 +76,23 @@ class CourseList extends StatelessWidget {
             runSpacing: 8,
             children: List.generate(courses.length, (index) {
               final course = courses[index];
-              final courseColor = Color.fromRGBO(
-                course['color'][0],
-                course['color'][1],
-                course['color'][2],
-                1,
-              );
+
+              // 为每个课程创建一个固定的颜色
+              final Color courseColor;
+              if (course['color'] != null &&
+                  course['color'] is List &&
+                  course['color'].length >= 3) {
+                // 课程有颜色数据，直接使用
+                courseColor = ColorUtils.storageToColor(course['color'],
+                    defaultColor:
+                        Colors.primaries[index % Colors.primaries.length]);
+              } else {
+                // 课程没有颜色数据，使用固定主题色或索引颜色
+                courseColor = useFixedColor
+                    ? Colors.primaries[index % Colors.primaries.length]
+                    : themeColor;
+              }
+
               return Chip(
                 label: Text(
                   course['courseName'],

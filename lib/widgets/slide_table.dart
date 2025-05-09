@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/main_page/week_manager.dart';
 import 'course_table.dart';
 
 /// 可滑动的课程表组件
@@ -53,6 +54,8 @@ class SlideTable extends StatefulWidget {
 
 class _SlideTableState extends State<SlideTable> {
   late PageController _pageController;
+  List<DateTime> _weekDates = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -61,18 +64,39 @@ class _SlideTableState extends State<SlideTable> {
       initialPage: widget.initialWeek - 1,
       keepPage: true,
     );
+    _loadWeekDates(widget.initialWeek);
   }
 
   @override
   void didUpdateWidget(SlideTable oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // 当周次变化时，更新页面位置
-    if (oldWidget.initialWeek != widget.initialWeek) {
+    // 当周次变化时，更新页面位置和日期
+    if (oldWidget.initialWeek != widget.initialWeek ||
+        oldWidget.currentSemester != widget.currentSemester) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_pageController.hasClients && mounted) {
           _pageController.jumpToPage(widget.initialWeek - 1);
+          _loadWeekDates(widget.initialWeek);
         }
       });
+    }
+  }
+
+  Future<void> _loadWeekDates(int week) async {
+    setState(() => _isLoading = true);
+    try {
+      final dates =
+          await WeekManager.getWeekDates(widget.currentSemester, week);
+      if (mounted) {
+        setState(() {
+          _weekDates = dates;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -92,7 +116,9 @@ class _SlideTableState extends State<SlideTable> {
         controller: _pageController,
         onPageChanged: (page) {
           if (mounted) {
-            widget.onWeekChange(page + 1);
+            final week = page + 1;
+            widget.onWeekChange(week);
+            _loadWeekDates(week);
           }
         },
         itemCount: 20,
@@ -108,6 +134,8 @@ class _SlideTableState extends State<SlideTable> {
             courses: widget.courses,
             onCourseUpdated: widget.onCourseUpdated,
             onCourseDeleted: widget.onCourseDeleted,
+            weekDates: _weekDates,
+            isLoading: _isLoading,
           );
         },
       ),

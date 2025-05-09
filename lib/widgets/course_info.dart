@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../utils/time_utils.dart';
+import '../utils/color_utils.dart';
 import 'course_add/time_picker.dart';
 import 'course_add/week_picker.dart';
 
@@ -53,11 +53,9 @@ class _CourseInfoDialogState extends State<CourseInfoDialog> {
     _courseName = widget.course['courseName'];
     _teacherName = widget.course['teacherName'];
     _remarks = widget.course['remarks'] ?? '';
-    _currentColor = Color.fromRGBO(
-      widget.course['color'][0],
-      widget.course['color'][1],
-      widget.course['color'][2],
-      1,
+    _currentColor = ColorUtils.storageToColor(
+      widget.course['color'],
+      defaultColor: widget.themeColor,
     );
     _times = List<List<dynamic>>.from(widget.course['times']);
     _weeks = List<int>.from(widget.course['weeks']);
@@ -86,30 +84,15 @@ class _CourseInfoDialogState extends State<CourseInfoDialog> {
   }
 
   /// 显示颜色选择器
-  void _showColorPicker() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('选择课程颜色'),
-        content: SingleChildScrollView(
-          child: BlockPicker(
-            pickerColor: _currentColor,
-            onColorChanged: (color) => setState(() => _currentColor = color),
-            availableColors: Colors.primaries,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('确定'),
-          ),
-        ],
-      ),
-    );
+  void _showColorPicker() async {
+    final selectedColor =
+        await ColorUtils.showColorPickerDialog(context, _currentColor);
+
+    if (selectedColor != null) {
+      setState(() {
+        _currentColor = selectedColor;
+      });
+    }
   }
 
   /// 添加课程时间
@@ -175,20 +158,32 @@ class _CourseInfoDialogState extends State<CourseInfoDialog> {
 
   /// 显示提示消息
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, textAlign: TextAlign.center),
-        backgroundColor: _currentColor,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(milliseconds: 2000),
-        margin: const EdgeInsets.only(
-          bottom: kFloatingActionButtonMargin + 10,
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+
+    // 确保颜色不是黑色
+    Color snackBarColor = ColorUtils.getSafeSnackBarColor(_currentColor,
+        fallbackColor: widget.themeColor);
+
+    try {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(message, textAlign: TextAlign.center),
+          backgroundColor: snackBarColor,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 2000),
+          margin: const EdgeInsets.symmetric(
+            horizontal: 20.0,
+            vertical: 20.0,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
+      );
+    } catch (e) {
+      // 防止SnackBar显示错误
+    }
   }
 
   /// 保存课程修改
@@ -221,7 +216,7 @@ class _CourseInfoDialogState extends State<CourseInfoDialog> {
       'courseName': _courseName,
       'teacherName': _teacherName,
       'remarks': _remarks,
-      'color': [_currentColor.r, _currentColor.g, _currentColor.b],
+      'color': ColorUtils.colorToStorage(_currentColor),
       'times': validTimes,
       'weeks': _weeks,
       'semester': widget.course['semester'],
