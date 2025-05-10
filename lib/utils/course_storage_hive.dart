@@ -6,9 +6,11 @@ class CourseStorageHive {
   static const String _coursesKey = 'coursesList';
   static const String _semesterKey = 'current_semester';
   static const String _semesterStartDatePrefix = 'semester_start_date_';
+  static const String _weekTemplatesKey = 'week_templates';
 
   static const int _minSemester = 1;
   static const int _maxSemester = 10;
+  static const int _maxWeekTemplates = 6;
 
   // 单例实例
   static CourseStorageHive? _instance;
@@ -103,6 +105,45 @@ class CourseStorageHive {
     return _box.containsKey(_getSemesterDateKey(semester));
   }
 
+  /// 保存周次模板
+  Future<void> _saveWeekTemplate(List<int> weeks) async {
+    if (weeks.isEmpty) return;
+
+    // 获取现有模板
+    List<List<int>> templates = _getWeekTemplates();
+
+    // 检查是否已存在相同模板
+    bool alreadyExists = templates.any((template) =>
+        template.length == weeks.length &&
+        template.every((week) => weeks.contains(week)));
+
+    // 如果已存在，不再添加
+    if (alreadyExists) return;
+
+    // 添加新模板，保持最多6个
+    templates.add(List<int>.from(weeks));
+    if (templates.length > _maxWeekTemplates) {
+      templates.removeAt(0); // 移除最旧的一个
+    }
+
+    await _put(_weekTemplatesKey, templates);
+  }
+
+  /// 获取周次模板列表
+  List<List<int>> _getWeekTemplates() {
+    final dynamic data = _get<dynamic>(_weekTemplatesKey);
+    if (data == null) return [];
+
+    try {
+      return (data as List).map((item) => List<int>.from(item)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// 清除所有周次模板
+  Future<void> _clearWeekTemplates() async => await _delete(_weekTemplatesKey);
+
   /// 清除无效的学期数据
   Future<void> _clearInvalidSemesterData() async {
     // 查找无效的键
@@ -161,4 +202,13 @@ class CourseStorageHive {
 
   static Future<void> clearInvalidSemesterData() =>
       _use((instance) => instance._clearInvalidSemesterData());
+
+  static Future<void> saveWeekTemplate(List<int> weeks) =>
+      _use((instance) => instance._saveWeekTemplate(weeks));
+
+  static Future<List<List<int>>> getWeekTemplates() =>
+      _use((instance) async => instance._getWeekTemplates());
+
+  static Future<void> clearWeekTemplates() =>
+      _use((instance) => instance._clearWeekTemplates());
 }
