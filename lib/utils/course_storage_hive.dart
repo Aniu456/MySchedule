@@ -5,6 +5,10 @@ class CourseStorageHive {
   static const String _boxName = 'courses';
   static const String _coursesKey = 'coursesList';
   static const String _semesterKey = 'current_semester';
+  static const String _semesterStartDatePrefix = 'semester_start_date_';
+
+  static const int _minSemester = 1;
+  static const int _maxSemester = 10;
 
   // 单例实例
   static CourseStorageHive? _instance;
@@ -18,151 +22,143 @@ class CourseStorageHive {
   static Future<CourseStorageHive> getInstance() async {
     if (_instance == null) {
       _instance = CourseStorageHive._();
-      await _instance!._init();
+      _instance!._box = Hive.isBoxOpen(_boxName)
+          ? Hive.box(_boxName)
+          : await Hive.openBox(_boxName);
     }
     return _instance!;
   }
 
-  // 初始化方法
-  Future<void> _init() async {
-    if (!Hive.isBoxOpen(_boxName)) {
-      _box = await Hive.openBox(_boxName);
-    } else {
-      _box = Hive.box(_boxName);
-    }
-  }
+  // 检查学期是否在有效范围内
+  static bool _isValidSemester(int semester) =>
+      semester >= _minSemester && semester <= _maxSemester;
 
-  // 保存课程 - 实例方法
-  Future<void> _saveCourses(List<Map<String, dynamic>> courses) async {
-    await _box.put(_coursesKey, courses);
-  }
+  // 确保学期在有效范围内
+  static int _normalizeSemester(int semester) =>
+      semester.clamp(_minSemester, _maxSemester);
 
-  // 获取课程 - 实例方法
+  /// 保存任意键值对 - 通用方法
+  Future<void> _put(String key, dynamic value) async =>
+      await _box.put(key, value);
+
+  /// 获取任意值 - 通用方法
+  T? _get<T>(String key, {T? defaultValue}) =>
+      _box.get(key, defaultValue: defaultValue) as T?;
+
+  /// 删除任意键 - 通用方法
+  Future<void> _delete(String key) async => await _box.delete(key);
+
+  /// 保存课程列表
+  Future<void> _saveCourses(List<Map<String, dynamic>> courses) async =>
+      await _put(_coursesKey, courses);
+
+  /// 获取课程列表
   List<Map> _getCourses() {
-    final dynamic coursesData = _box.get(_coursesKey);
+    final dynamic coursesData = _get<dynamic>(_coursesKey);
     if (coursesData == null) return [];
 
     return List<Map>.from(coursesData).map((course) {
       // 确保 weeks 和 color 是 List<int>
       return {
         ...course,
-        'weeks': (course['weeks'] as List).map((e) => e as int).toList(),
-        'color': (course['color'] as List).map((e) => e as int).toList(),
+        'weeks': List<int>.from(course['weeks'] ?? []),
+        'color': List<int>.from(course['color'] ?? []),
       };
     }).toList();
   }
 
-  // 删除课程 - 实例方法
-  Future<void> _deleteCourses() async {
-    await _box.delete(_coursesKey);
-  }
+  /// 删除所有课程
+  Future<void> _deleteCourses() async => await _delete(_coursesKey);
 
-  // 保存当前学期 - 实例方法
-  Future<void> _saveSemester(int semester) async {
-    await _box.put(_semesterKey, semester);
-  }
+  /// 保存当前学期
+  Future<void> _saveSemester(int semester) async =>
+      await _put(_semesterKey, _normalizeSemester(semester));
 
-  // 获取当前学期 - 实例方法
-  int _getSemester() {
-    final int semester = _box.get(_semesterKey, defaultValue: 1);
-    // 确保返回的学期值在有效范围内
-    return semester.clamp(1, 10);
-  }
+  /// 获取当前学期
+  int _getSemester() =>
+      _normalizeSemester(_get<int>(_semesterKey) ?? _minSemester);
 
-  /// 保存学期开始日期 - 实例方法
+  /// 生成学期开始日期的键
+  String _getSemesterDateKey(int semester) =>
+      '$_semesterStartDatePrefix$semester';
+
+  /// 保存学期开始日期
   Future<void> _saveSemesterStartDate(int semester, DateTime startDate) async {
-    await _box.put(
-        'semester_start_date_$semester', startDate.millisecondsSinceEpoch);
+    if (!_isValidSemester(semester)) return;
+    await _put(_getSemesterDateKey(semester), startDate.millisecondsSinceEpoch);
   }
 
-  /// 获取学期开始日期 - 实例方法
+  /// 获取学期开始日期
   DateTime? _getSemesterStartDate(int semester) {
-    final timestamp = _box.get('semester_start_date_$semester');
-    if (timestamp != null) {
-      return DateTime.fromMillisecondsSinceEpoch(timestamp);
-    }
-    return null;
+    if (!_isValidSemester(semester)) return null;
+    final timestamp = _get<int>(_getSemesterDateKey(semester));
+    return timestamp != null
+        ? DateTime.fromMillisecondsSinceEpoch(timestamp)
+        : null;
   }
 
-  /// 检查学期开始日期是否已设置 - 实例方法
+  /// 检查学期开始日期是否已设置
   bool _hasSemesterStartDate(int semester) {
-    return _box.containsKey('semester_start_date_$semester');
+    if (!_isValidSemester(semester)) return false;
+    return _box.containsKey(_getSemesterDateKey(semester));
   }
 
-  /// 清除无效的学期数据 - 实例方法
+  /// 清除无效的学期数据
   Future<void> _clearInvalidSemesterData() async {
-    // 获取所有键
-    final keys = _box.keys.toList();
-
-    // 查找和删除所有无效的学期数据
-    for (final key in keys) {
-      if (key is String && key.startsWith('semester_start_date_')) {
-        try {
-          // 提取学期编号
-          final semesterString = key.replaceFirst('semester_start_date_', '');
-          final semester = int.parse(semesterString);
-
-          // 如果学期编号超出范围，删除对应数据
-          if (semester < 1 || semester > 10) {
-            await _box.delete(key);
-          }
-        } catch (e) {
-          // 忽略解析错误
-        }
+    // 查找无效的键
+    final invalidKeys = _box.keys
+        .whereType<String>()
+        .where((key) => key.startsWith(_semesterStartDatePrefix))
+        .where((key) {
+      try {
+        final semesterString = key.replaceFirst(_semesterStartDatePrefix, '');
+        final semester = int.parse(semesterString);
+        return !_isValidSemester(semester);
+      } catch (_) {
+        return true; // 解析失败的键也视为无效
       }
+    }).toList();
+
+    // 批量删除
+    for (final key in invalidKeys) {
+      await _delete(key);
     }
 
-    // 确保当前学期设置也在有效范围内
-    final currentSemester = _getSemester();
-    if (currentSemester < 1 || currentSemester > 10) {
-      await _saveSemester(currentSemester.clamp(1, 10));
-    }
+    // 确保当前学期有效
+    await _saveSemester(_getSemester());
   }
 
-  // 静态方法包装器，保持API兼容性
-  static Future<void> saveCourses(List<Map<String, dynamic>> courses) async {
+  // 静态方法包装器
+  static Future<T> _use<T>(Future<T> Function(CourseStorageHive) action) async {
     final instance = await getInstance();
-    await instance._saveCourses(courses);
+    return await action(instance);
   }
 
-  static Future<List<Map>> getCourses() async {
-    final instance = await getInstance();
-    return instance._getCourses();
-  }
+  // 暴露的公共静态API
+  static Future<void> saveCourses(List<Map<String, dynamic>> courses) =>
+      _use((instance) => instance._saveCourses(courses));
 
-  static Future<void> deleteCourses() async {
-    final instance = await getInstance();
-    await instance._deleteCourses();
-  }
+  static Future<List<Map>> getCourses() =>
+      _use((instance) async => instance._getCourses());
 
-  static Future<void> saveSemester(int semester) async {
-    final instance = await getInstance();
-    await instance._saveSemester(semester);
-  }
+  static Future<void> deleteCourses() =>
+      _use((instance) => instance._deleteCourses());
 
-  static Future<int> getSemester() async {
-    final instance = await getInstance();
-    return instance._getSemester();
-  }
+  static Future<void> saveSemester(int semester) =>
+      _use((instance) => instance._saveSemester(semester));
 
-  static Future<void> saveSemesterStartDate(
-      int semester, DateTime startDate) async {
-    final instance = await getInstance();
-    await instance._saveSemesterStartDate(semester, startDate);
-  }
+  static Future<int> getSemester() =>
+      _use((instance) async => instance._getSemester());
 
-  static Future<DateTime?> getSemesterStartDate(int semester) async {
-    final instance = await getInstance();
-    return instance._getSemesterStartDate(semester);
-  }
+  static Future<void> saveSemesterStartDate(int semester, DateTime startDate) =>
+      _use((instance) => instance._saveSemesterStartDate(semester, startDate));
 
-  static Future<bool> hasSemesterStartDate(int semester) async {
-    final instance = await getInstance();
-    return instance._hasSemesterStartDate(semester);
-  }
+  static Future<DateTime?> getSemesterStartDate(int semester) =>
+      _use((instance) async => instance._getSemesterStartDate(semester));
 
-  static Future<void> clearInvalidSemesterData() async {
-    final instance = await getInstance();
-    await instance._clearInvalidSemesterData();
-  }
+  static Future<bool> hasSemesterStartDate(int semester) =>
+      _use((instance) async => instance._hasSemesterStartDate(semester));
+
+  static Future<void> clearInvalidSemesterData() =>
+      _use((instance) => instance._clearInvalidSemesterData());
 }

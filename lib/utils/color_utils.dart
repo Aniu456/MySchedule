@@ -17,17 +17,7 @@ class ColorUtils {
   /// 存储格式为: [r, g, b]，其中r、g、b为0-255的整数
   static Color storageToColor(dynamic colorData, {Color? defaultColor}) {
     try {
-      if (colorData == null) {
-        return defaultColor ?? Colors.teal;
-      }
-
-      // 检查是否为列表类型
-      if (colorData is! List) {
-        return defaultColor ?? Colors.teal;
-      }
-
-      // 检查列表长度
-      if (colorData.length < 3) {
+      if (colorData == null || colorData is! List || colorData.length < 3) {
         return defaultColor ?? Colors.teal;
       }
 
@@ -143,28 +133,121 @@ class ColorUtils {
 
   /// 获取颜色的中文名称（用于调试或用户界面）
   static String getColorName(Color color) {
-    if (color == Colors.red) return '红色';
-    if (color == Colors.pink) return '粉色';
-    if (color == Colors.purple) return '紫色';
-    if (color == Colors.deepPurple) return '深紫色';
-    if (color == Colors.indigo) return '靛蓝色';
-    if (color == Colors.blue) return '蓝色';
-    if (color == Colors.lightBlue) return '浅蓝色';
-    if (color == Colors.cyan) return '青色';
-    if (color == Colors.teal) return '蓝绿色';
-    if (color == Colors.green) return '绿色';
-    if (color == Colors.lightGreen) return '浅绿色';
-    if (color == Colors.lime) return '酸橙色';
-    if (color == Colors.yellow) return '黄色';
-    if (color == Colors.amber) return '琥珀色';
-    if (color == Colors.orange) return '橙色';
-    if (color == Colors.deepOrange) return '深橙色';
-    if (color == Colors.brown) return '棕色';
-    if (color == Colors.grey) return '灰色';
-    if (color == Colors.blueGrey) return '蓝灰色';
-    return '自定义颜色';
+    final colorNameMap = {
+      Colors.red: '红色',
+      Colors.pink: '粉色',
+      Colors.purple: '紫色',
+      Colors.deepPurple: '深紫色',
+      Colors.indigo: '靛蓝色',
+      Colors.blue: '蓝色',
+      Colors.lightBlue: '浅蓝色',
+      Colors.cyan: '青色',
+      Colors.teal: '蓝绿色',
+      Colors.green: '绿色',
+      Colors.lightGreen: '浅绿色',
+      Colors.lime: '酸橙色',
+      Colors.yellow: '黄色',
+      Colors.amber: '琥珀色',
+      Colors.orange: '橙色',
+      Colors.deepOrange: '深橙色',
+      Colors.brown: '棕色',
+      Colors.grey: '灰色',
+      Colors.blueGrey: '蓝灰色',
+    };
+
+    return colorNameMap[color] ?? '自定义颜色';
   }
 }
+
+/// 颜色相关的扩展方法
+extension ColorExt on Color {
+  /// 转换为RGBO格式时使用的便捷方法
+  Color toRGBO(double opacity) {
+    return Color.fromRGBO(
+      (r * 255).round(),
+      (g * 255).round(),
+      (b * 255).round(),
+      opacity,
+    );
+  }
+
+  /// 获取适合此背景色的前景色（黑或白）
+  Color contrastColor() {
+    return ColorUtils._calculateLuminance(this) > 0.5
+        ? Colors.black
+        : Colors.white;
+  }
+
+  /// 获取此颜色的深浅变体列表
+  List<Color> getVariants() {
+    // 查找预定义的颜色变体
+    for (final baseColor in _colorFamilyMap.keys) {
+      if (this == baseColor) {
+        return _colorFamilyMap[baseColor]!;
+      }
+    }
+    // 如果没有预定义，返回空列表
+    return [];
+  }
+}
+
+// 颜色家族映射
+final Map<Color, List<Color>> _colorFamilyMap = {
+  Colors.red: [Colors.red.shade300, Colors.red, Colors.red.shade700],
+  Colors.pink: [Colors.pink.shade300, Colors.pink, Colors.pink.shade700],
+  Colors.purple: [
+    Colors.purple.shade300,
+    Colors.purple,
+    Colors.purple.shade700
+  ],
+  Colors.deepPurple: [
+    Colors.deepPurple.shade300,
+    Colors.deepPurple,
+    Colors.deepPurple.shade700
+  ],
+  Colors.indigo: [
+    Colors.indigo.shade300,
+    Colors.indigo,
+    Colors.indigo.shade700
+  ],
+  Colors.blue: [Colors.blue.shade300, Colors.blue, Colors.blue.shade700],
+  Colors.lightBlue: [
+    Colors.lightBlue.shade300,
+    Colors.lightBlue,
+    Colors.lightBlue.shade700
+  ],
+  Colors.cyan: [Colors.cyan.shade300, Colors.cyan, Colors.cyan.shade700],
+  Colors.teal: [Colors.teal.shade300, Colors.teal, Colors.teal.shade700],
+  Colors.green: [Colors.green.shade300, Colors.green, Colors.green.shade700],
+  Colors.lightGreen: [
+    Colors.lightGreen.shade300,
+    Colors.lightGreen,
+    Colors.lightGreen.shade700
+  ],
+  Colors.lime: [Colors.lime.shade300, Colors.lime, Colors.lime.shade700],
+  Colors.yellow: [
+    Colors.yellow.shade300,
+    Colors.yellow,
+    Colors.yellow.shade700
+  ],
+  Colors.amber: [Colors.amber.shade300, Colors.amber, Colors.amber.shade700],
+  Colors.orange: [
+    Colors.orange.shade300,
+    Colors.orange,
+    Colors.orange.shade700
+  ],
+  Colors.deepOrange: [
+    Colors.deepOrange.shade300,
+    Colors.deepOrange,
+    Colors.deepOrange.shade700
+  ],
+  Colors.brown: [Colors.brown.shade300, Colors.brown, Colors.brown.shade700],
+  Colors.blueGrey: [
+    Colors.blueGrey.shade300,
+    Colors.blueGrey,
+    Colors.blueGrey.shade700
+  ],
+};
 
 /// 自定义Material风格颜色选择器
 class MaterialColorPicker extends StatefulWidget {
@@ -196,156 +279,169 @@ class _MaterialColorPickerState extends State<MaterialColorPicker> {
       mainAxisSize: MainAxisSize.min,
       children: [
         // 显示选中的颜色
-        Container(
-          width: double.infinity,
-          height: 60,
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: _selectedColor,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-        ),
+        _ColorPreview(color: _selectedColor),
 
         // 主要颜色网格
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            for (var color in ColorUtils.materialColors)
-              GestureDetector(
-                onTap: () {
-                  setState(() => _selectedColor = color);
-                  widget.onColorChange(color);
-                },
-                child: Container(
-                  width: 45,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _selectedColor == color
-                          ? Colors.white
-                          : Colors.transparent,
-                      width: 3,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
+        _ColorGrid(
+          colors: ColorUtils.materialColors,
+          selectedColor: _selectedColor,
+          onColorSelected: _handleColorSelected,
         ),
 
         // 常用主题色变种
-        const SizedBox(height: 16),
-        const Text('深浅变体', style: TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        if (_getColorFamily(_selectedColor).isNotEmpty)
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              for (var color in _getColorFamily(_selectedColor))
-                GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedColor = color);
-                    widget.onColorChange(color);
-                  },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: _selectedColor == color
-                            ? Colors.white
-                            : Colors.transparent,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+        _ColorVariants(
+          color: _selectedColor,
+          selectedColor: _selectedColor,
+          onColorSelected: _handleColorSelected,
+        ),
       ],
     );
   }
 
-  /// 获取颜色的色系变体
-  List<Color> _getColorFamily(Color color) {
-    // 匹配选中颜色的色系
-    if (color == Colors.red) {
-      return [Colors.red.shade300, Colors.red, Colors.red.shade700];
-    } else if (color == Colors.pink) {
-      return [Colors.pink.shade300, Colors.pink, Colors.pink.shade700];
-    } else if (color == Colors.purple) {
-      return [Colors.purple.shade300, Colors.purple, Colors.purple.shade700];
-    } else if (color == Colors.deepPurple) {
-      return [
-        Colors.deepPurple.shade300,
-        Colors.deepPurple,
-        Colors.deepPurple.shade700
-      ];
-    } else if (color == Colors.indigo) {
-      return [Colors.indigo.shade300, Colors.indigo, Colors.indigo.shade700];
-    } else if (color == Colors.blue) {
-      return [Colors.blue.shade300, Colors.blue, Colors.blue.shade700];
-    } else if (color == Colors.lightBlue) {
-      return [
-        Colors.lightBlue.shade300,
-        Colors.lightBlue,
-        Colors.lightBlue.shade700
-      ];
-    } else if (color == Colors.cyan) {
-      return [Colors.cyan.shade300, Colors.cyan, Colors.cyan.shade700];
-    } else if (color == Colors.teal) {
-      return [Colors.teal.shade300, Colors.teal, Colors.teal.shade700];
-    } else if (color == Colors.green) {
-      return [Colors.green.shade300, Colors.green, Colors.green.shade700];
-    } else if (color == Colors.lightGreen) {
-      return [
-        Colors.lightGreen.shade300,
-        Colors.lightGreen,
-        Colors.lightGreen.shade700
-      ];
-    } else if (color == Colors.lime) {
-      return [Colors.lime.shade300, Colors.lime, Colors.lime.shade700];
-    } else if (color == Colors.yellow) {
-      return [Colors.yellow.shade300, Colors.yellow, Colors.yellow.shade700];
-    } else if (color == Colors.amber) {
-      return [Colors.amber.shade300, Colors.amber, Colors.amber.shade700];
-    } else if (color == Colors.orange) {
-      return [Colors.orange.shade300, Colors.orange, Colors.orange.shade700];
-    } else if (color == Colors.deepOrange) {
-      return [
-        Colors.deepOrange.shade300,
-        Colors.deepOrange,
-        Colors.deepOrange.shade700
-      ];
-    } else if (color == Colors.brown) {
-      return [Colors.brown.shade300, Colors.brown, Colors.brown.shade700];
-    } else if (color == Colors.blueGrey) {
-      return [
-        Colors.blueGrey.shade300,
-        Colors.blueGrey,
-        Colors.blueGrey.shade700
-      ];
-    }
+  void _handleColorSelected(Color color) {
+    setState(() => _selectedColor = color);
+    widget.onColorChange(color);
+  }
+}
 
-    return [];
+/// 颜色预览组件
+class _ColorPreview extends StatelessWidget {
+  final Color color;
+
+  const _ColorPreview({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 60,
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 颜色网格组件
+class _ColorGrid extends StatelessWidget {
+  final List<Color> colors;
+  final Color selectedColor;
+  final ValueChanged<Color> onColorSelected;
+
+  const _ColorGrid({
+    required this.colors,
+    required this.selectedColor,
+    required this.onColorSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: [
+        for (var color in colors)
+          _ColorItem(
+            color: color,
+            isSelected: selectedColor == color,
+            onTap: () => onColorSelected(color),
+            size: 45,
+          ),
+      ],
+    );
+  }
+}
+
+/// 颜色变体组件
+class _ColorVariants extends StatelessWidget {
+  final Color color;
+  final Color selectedColor;
+  final ValueChanged<Color> onColorSelected;
+
+  const _ColorVariants({
+    required this.color,
+    required this.selectedColor,
+    required this.onColorSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final variants = color.getVariants();
+    if (variants.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        const Text('深浅变体', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            for (var variantColor in variants)
+              _ColorItem(
+                color: variantColor,
+                isSelected: selectedColor == variantColor,
+                onTap: () => onColorSelected(variantColor),
+                size: 40,
+                borderWidth: 2,
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// 颜色项组件
+class _ColorItem extends StatelessWidget {
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final double size;
+  final double borderWidth;
+
+  const _ColorItem({
+    required this.color,
+    required this.isSelected,
+    required this.onTap,
+    required this.size,
+    this.borderWidth = 3,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.transparent,
+            width: borderWidth,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

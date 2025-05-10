@@ -62,11 +62,8 @@ class TimeUtils {
   /// 将节次字符串转换为数字
   /// 支持直接数字字符串和中文格式
   /// 例如：'第一节' -> 1, '1' -> 1
-  static int getClassValue(String classTime) {
-    final number = int.tryParse(classTime);
-    if (number != null) return number;
-    return classToNumber[classTime] ?? 0;
-  }
+  static int getClassValue(String classTime) =>
+      int.tryParse(classTime) ?? classToNumber[classTime] ?? 0;
 
   /// 将数字转换为节次字符串
   /// 例如：1 -> '第一节'
@@ -92,20 +89,19 @@ class TimeUtils {
     List<int> newWeeks,
   ) {
     // 检查周次是否有重叠
-    if (!existingWeeks.any((week) => newWeeks.contains(week))) return false;
+    if (!existingWeeks.hasOverlapWith(newWeeks)) return false;
 
     // 检查时间是否有重叠
-    for (var existingTime in existingTimes) {
-      if (existingTime.length < 3) continue;
+    return existingTimes.any((existingTime) {
+      if (existingTime.length < 3) return false;
 
-      for (var newTime in newTimes) {
-        if (newTime.length < 3) continue;
+      return newTimes.any((newTime) {
+        if (newTime.length < 3) return false;
 
-        // 如果不是同一天，继续检查下一个时间
-        if (getDayValue(existingTime[0].toString()) !=
-            getDayValue(newTime[0].toString())) {
-          continue;
-        }
+        // 如果不是同一天，无冲突
+        final existingDay = getDayValue(existingTime[0].toString());
+        final newDay = getDayValue(newTime[0].toString());
+        if (existingDay != newDay) return false;
 
         // 转换时间为整数进行比较
         final existingStart = getClassValue(existingTime[1].toString());
@@ -116,17 +112,13 @@ class TimeUtils {
         // 检查时间是否有效
         if (!isValidTimeRange(existingStart, existingEnd) ||
             !isValidTimeRange(newStart, newEnd)) {
-          continue;
+          return false;
         }
 
-        // 检查时间是否重叠
-        if (!(newEnd < existingStart || newStart > existingEnd)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
+        // 检查时间是否重叠 (两个时间段有重叠的条件是：一个的开始不晚于另一个的结束，且一个的结束不早于另一个的开始)
+        return !(newEnd < existingStart || newStart > existingEnd);
+      });
+    });
   }
 
   /// 格式化时间范围显示
@@ -138,8 +130,34 @@ class TimeUtils {
     final start = getClassValue(time[1].toString());
     final end = getClassValue(time[2].toString());
 
-    if (!isValidTimeRange(start, end)) return '';
-
-    return '${time[0]} $start-$end节';
+    return isValidTimeRange(start, end) ? '${time[0]} $start-$end节' : '';
   }
+}
+
+/// 集合扩展
+extension ListExtensions<T> on List<T> {
+  /// 检查两个列表是否有重叠元素
+  bool hasOverlapWith(List<T> other) => any((item) => other.contains(item));
+}
+
+/// 课程时间扩展方法
+extension CourseTimeExtensions on List<dynamic> {
+  /// 获取星期值
+  int get dayValue =>
+      isNotEmpty ? TimeUtils.getDayValue(this[0].toString()) : 0;
+
+  /// 获取开始节次
+  int get startPeriod =>
+      length >= 2 ? TimeUtils.getClassValue(this[1].toString()) : 0;
+
+  /// 获取结束节次
+  int get endPeriod =>
+      length >= 3 ? TimeUtils.getClassValue(this[2].toString()) : 0;
+
+  /// 检查时间是否有效
+  bool get isValidTime =>
+      length >= 3 && TimeUtils.isValidTimeRange(startPeriod, endPeriod);
+
+  /// 格式化为可读字符串
+  String get formatted => TimeUtils.formatTimeRange(this);
 }

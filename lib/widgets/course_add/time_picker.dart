@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/time_utils.dart';
+import '../../utils/color_utils.dart';
 
 /// 时间选择器组件
 /// 用于显示已选择的时间段，支持添加和删除时间
@@ -34,26 +35,7 @@ class TimePickerWidget extends StatelessWidget {
             runSpacing: 8,
             children: times
                 .where((time) => time.isNotEmpty)
-                .map(
-                  (time) => Chip(
-                    backgroundColor: Color.fromRGBO(
-                      (currentColor.r * 255).round(),
-                      (currentColor.g * 255).round(),
-                      (currentColor.b * 255).round(),
-                      0.1,
-                    ),
-                    label: Text(
-                      TimeUtils.formatTimeRange(time),
-                      style: TextStyle(color: currentColor),
-                    ),
-                    deleteIcon: Icon(
-                      Icons.close,
-                      size: 18,
-                      color: currentColor,
-                    ),
-                    onDeleted: () => onRemoveTime(time),
-                  ),
-                )
+                .map(_buildTimeChip)
                 .toList(),
           )
         else
@@ -67,6 +49,23 @@ class TimePickerWidget extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+
+  /// 构建时间显示芯片
+  Widget _buildTimeChip(List<dynamic> time) {
+    return Chip(
+      backgroundColor: currentColor.toRGBO(0.1),
+      label: Text(
+        TimeUtils.formatTimeRange(time),
+        style: TextStyle(color: currentColor),
+      ),
+      deleteIcon: Icon(
+        Icons.close,
+        size: 18,
+        color: currentColor,
+      ),
+      onDeleted: () => onRemoveTime(time),
     );
   }
 }
@@ -116,34 +115,6 @@ class _CourseTimePickerDialogState extends State<CourseTimePickerDialog> {
     return true;
   }
 
-  /// 构建下拉选择框
-  Widget _buildDropdown({
-    required dynamic value,
-    required String hint,
-    required List<DropdownMenuItem> items,
-    required ValueChanged<dynamic> onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton(
-          value: value,
-          hint: Text(
-            hint,
-            style: const TextStyle(fontSize: 12),
-          ),
-          isExpanded: true,
-          items: items,
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
   /// 处理时间选择
   void _handleTimeSelection(dynamic value) {
     final int? selectedValue = value as int?;
@@ -165,6 +136,44 @@ class _CourseTimePickerDialogState extends State<CourseTimePickerDialog> {
 
     widget.onTimeAdded(selectedDay!, startPeriod!, selectedValue);
     Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('选择上课时间'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildDropdown(
+            value: selectedDay,
+            hint: '选择星期',
+            items: weekdays
+                .map((day) => DropdownMenuItem(
+                      value: day,
+                      child: Text(
+                        day,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ))
+                .toList(),
+            onChanged: (value) => setState(() {
+              selectedDay = value;
+              startPeriod = null;
+              endPeriod = null;
+            }),
+          ),
+          const SizedBox(height: 16),
+          _buildTimePicker(),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('取消'),
+        ),
+      ],
+    );
   }
 
   /// 构建时间选择部分
@@ -218,41 +227,31 @@ class _CourseTimePickerDialogState extends State<CourseTimePickerDialog> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('选择上课时间'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildDropdown(
-            value: selectedDay,
-            hint: '选择星期',
-            items: weekdays
-                .map((day) => DropdownMenuItem(
-                      value: day,
-                      child: Text(
-                        day,
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ))
-                .toList(),
-            onChanged: (value) => setState(() {
-              selectedDay = value;
-              startPeriod = null;
-              endPeriod = null;
-            }),
-          ),
-          const SizedBox(height: 16),
-          _buildTimePicker(),
-        ],
+  /// 构建下拉选择框
+  Widget _buildDropdown({
+    required dynamic value,
+    required String hint,
+    required List<DropdownMenuItem> items,
+    required ValueChanged<dynamic> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton(
+          value: value,
+          hint: Text(
+            hint,
+            style: const TextStyle(fontSize: 12),
+          ),
+          isExpanded: true,
+          items: items,
+          onChanged: onChanged,
         ),
-      ],
+      ),
     );
   }
 }
