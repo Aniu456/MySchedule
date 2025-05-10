@@ -6,17 +6,31 @@ class ColorUtils {
   /// 将Flutter Color对象转换为存储格式（整数列表）
   /// 存储格式为: [r, g, b]，其中r、g、b为0-255的整数
   static List<int> colorToStorage(Color color) {
-    return [color.red, color.green, color.blue];
+    return [
+      (color.r * 255).round(),
+      (color.g * 255).round(),
+      (color.b * 255).round()
+    ];
   }
 
   /// 将存储格式转换为Flutter Color对象
   /// 存储格式为: [r, g, b]，其中r、g、b为0-255的整数
-  static Color storageToColor(List<dynamic> colorData, {Color? defaultColor}) {
-    if (colorData.length < 3) {
-      return defaultColor ?? Colors.teal;
-    }
-
+  static Color storageToColor(dynamic colorData, {Color? defaultColor}) {
     try {
+      if (colorData == null) {
+        return defaultColor ?? Colors.teal;
+      }
+
+      // 检查是否为列表类型
+      if (colorData is! List) {
+        return defaultColor ?? Colors.teal;
+      }
+
+      // 检查列表长度
+      if (colorData.length < 3) {
+        return defaultColor ?? Colors.teal;
+      }
+
       // 确保颜色值在有效范围内 (0-255)
       int r = _validateColorValue(colorData[0]);
       int g = _validateColorValue(colorData[1]);
@@ -24,6 +38,7 @@ class ColorUtils {
 
       return Color.fromRGBO(r, g, b, 1.0);
     } catch (e) {
+      // 任何异常情况都返回默认颜色
       return defaultColor ?? Colors.teal;
     }
   }
@@ -123,30 +138,30 @@ class ColorUtils {
 
   /// 计算颜色的亮度，用于判断颜色是否太深
   static double _calculateLuminance(Color color) {
-    return (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue) / 255;
+    return (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
   }
 
   /// 获取颜色的中文名称（用于调试或用户界面）
   static String getColorName(Color color) {
-    if (color.value == Colors.red.value) return '红色';
-    if (color.value == Colors.pink.value) return '粉色';
-    if (color.value == Colors.purple.value) return '紫色';
-    if (color.value == Colors.deepPurple.value) return '深紫色';
-    if (color.value == Colors.indigo.value) return '靛蓝色';
-    if (color.value == Colors.blue.value) return '蓝色';
-    if (color.value == Colors.lightBlue.value) return '浅蓝色';
-    if (color.value == Colors.cyan.value) return '青色';
-    if (color.value == Colors.teal.value) return '蓝绿色';
-    if (color.value == Colors.green.value) return '绿色';
-    if (color.value == Colors.lightGreen.value) return '浅绿色';
-    if (color.value == Colors.lime.value) return '酸橙色';
-    if (color.value == Colors.yellow.value) return '黄色';
-    if (color.value == Colors.amber.value) return '琥珀色';
-    if (color.value == Colors.orange.value) return '橙色';
-    if (color.value == Colors.deepOrange.value) return '深橙色';
-    if (color.value == Colors.brown.value) return '棕色';
-    if (color.value == Colors.grey.value) return '灰色';
-    if (color.value == Colors.blueGrey.value) return '蓝灰色';
+    if (color == Colors.red) return '红色';
+    if (color == Colors.pink) return '粉色';
+    if (color == Colors.purple) return '紫色';
+    if (color == Colors.deepPurple) return '深紫色';
+    if (color == Colors.indigo) return '靛蓝色';
+    if (color == Colors.blue) return '蓝色';
+    if (color == Colors.lightBlue) return '浅蓝色';
+    if (color == Colors.cyan) return '青色';
+    if (color == Colors.teal) return '蓝绿色';
+    if (color == Colors.green) return '绿色';
+    if (color == Colors.lightGreen) return '浅绿色';
+    if (color == Colors.lime) return '酸橙色';
+    if (color == Colors.yellow) return '黄色';
+    if (color == Colors.amber) return '琥珀色';
+    if (color == Colors.orange) return '橙色';
+    if (color == Colors.deepOrange) return '深橙色';
+    if (color == Colors.brown) return '棕色';
+    if (color == Colors.grey) return '灰色';
+    if (color == Colors.blueGrey) return '蓝灰色';
     return '自定义颜色';
   }
 }
@@ -190,7 +205,7 @@ class _MaterialColorPickerState extends State<MaterialColorPicker> {
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -223,7 +238,7 @@ class _MaterialColorPickerState extends State<MaterialColorPicker> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -273,57 +288,57 @@ class _MaterialColorPickerState extends State<MaterialColorPicker> {
   /// 获取颜色的色系变体
   List<Color> _getColorFamily(Color color) {
     // 匹配选中颜色的色系
-    if (color.value == Colors.red.value) {
+    if (color == Colors.red) {
       return [Colors.red.shade300, Colors.red, Colors.red.shade700];
-    } else if (color.value == Colors.pink.value) {
+    } else if (color == Colors.pink) {
       return [Colors.pink.shade300, Colors.pink, Colors.pink.shade700];
-    } else if (color.value == Colors.purple.value) {
+    } else if (color == Colors.purple) {
       return [Colors.purple.shade300, Colors.purple, Colors.purple.shade700];
-    } else if (color.value == Colors.deepPurple.value) {
+    } else if (color == Colors.deepPurple) {
       return [
         Colors.deepPurple.shade300,
         Colors.deepPurple,
         Colors.deepPurple.shade700
       ];
-    } else if (color.value == Colors.indigo.value) {
+    } else if (color == Colors.indigo) {
       return [Colors.indigo.shade300, Colors.indigo, Colors.indigo.shade700];
-    } else if (color.value == Colors.blue.value) {
+    } else if (color == Colors.blue) {
       return [Colors.blue.shade300, Colors.blue, Colors.blue.shade700];
-    } else if (color.value == Colors.lightBlue.value) {
+    } else if (color == Colors.lightBlue) {
       return [
         Colors.lightBlue.shade300,
         Colors.lightBlue,
         Colors.lightBlue.shade700
       ];
-    } else if (color.value == Colors.cyan.value) {
+    } else if (color == Colors.cyan) {
       return [Colors.cyan.shade300, Colors.cyan, Colors.cyan.shade700];
-    } else if (color.value == Colors.teal.value) {
+    } else if (color == Colors.teal) {
       return [Colors.teal.shade300, Colors.teal, Colors.teal.shade700];
-    } else if (color.value == Colors.green.value) {
+    } else if (color == Colors.green) {
       return [Colors.green.shade300, Colors.green, Colors.green.shade700];
-    } else if (color.value == Colors.lightGreen.value) {
+    } else if (color == Colors.lightGreen) {
       return [
         Colors.lightGreen.shade300,
         Colors.lightGreen,
         Colors.lightGreen.shade700
       ];
-    } else if (color.value == Colors.lime.value) {
+    } else if (color == Colors.lime) {
       return [Colors.lime.shade300, Colors.lime, Colors.lime.shade700];
-    } else if (color.value == Colors.yellow.value) {
+    } else if (color == Colors.yellow) {
       return [Colors.yellow.shade300, Colors.yellow, Colors.yellow.shade700];
-    } else if (color.value == Colors.amber.value) {
+    } else if (color == Colors.amber) {
       return [Colors.amber.shade300, Colors.amber, Colors.amber.shade700];
-    } else if (color.value == Colors.orange.value) {
+    } else if (color == Colors.orange) {
       return [Colors.orange.shade300, Colors.orange, Colors.orange.shade700];
-    } else if (color.value == Colors.deepOrange.value) {
+    } else if (color == Colors.deepOrange) {
       return [
         Colors.deepOrange.shade300,
         Colors.deepOrange,
         Colors.deepOrange.shade700
       ];
-    } else if (color.value == Colors.brown.value) {
+    } else if (color == Colors.brown) {
       return [Colors.brown.shade300, Colors.brown, Colors.brown.shade700];
-    } else if (color.value == Colors.blueGrey.value) {
+    } else if (color == Colors.blueGrey) {
       return [
         Colors.blueGrey.shade300,
         Colors.blueGrey,

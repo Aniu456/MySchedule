@@ -73,14 +73,18 @@ class CourseTable extends StatelessWidget {
   Widget _buildTimeColumn() {
     return SizedBox(
       width: (showTimeSlots ? 45 : 30).w,
-      child: Column(
-        children: List.generate(10, (index) {
-          return Expanded(
-            child: Container(
+      child: LayoutBuilder(builder: (context, constraints) {
+        final cellHeight = constraints.maxHeight / 10;
+
+        return Column(
+          children: List.generate(10, (index) {
+            return Container(
+              height: cellHeight,
               decoration: BoxDecoration(
                 border: showGrid
                     ? Border.all(color: Colors.grey[200]!)
                     : Border.all(color: Colors.transparent),
+                color: index % 2 == 0 ? Colors.grey[50] : Colors.white,
               ),
               child: Center(
                 child: Column(
@@ -108,14 +112,14 @@ class CourseTable extends StatelessWidget {
                               Text(
                                 _timeSlots[index][0],
                                 style: TextStyle(
-                                  fontSize: 12.sp,
+                                  fontSize: 11.sp,
                                   color: Colors.grey,
                                 ),
                               ),
                               Text(
                                 _timeSlots[index][1],
                                 style: TextStyle(
-                                  fontSize: 12.sp,
+                                  fontSize: 11.sp,
                                   color: Colors.grey,
                                 ),
                               ),
@@ -127,10 +131,10 @@ class CourseTable extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-          );
-        }),
-      ),
+            );
+          }),
+        );
+      }),
     );
   }
 
@@ -144,12 +148,13 @@ class CourseTable extends StatelessWidget {
       return Container(
         height: 55,
         decoration: BoxDecoration(
+          color: Colors.grey[50],
           border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
         ),
         child: Row(
           children: [
             SizedBox(
-              width: (showTimeSlots ? 45 : 30),
+              width: (showTimeSlots ? 45 : 30).w,
               child: const Center(
                 child: Text(
                   '日期',
@@ -200,14 +205,15 @@ class CourseTable extends StatelessWidget {
     }
 
     return Container(
-      height: 55,
+      height: 50,
       decoration: BoxDecoration(
+        color: Colors.grey[50],
         border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
       ),
       child: Row(
         children: [
           SizedBox(
-            width: (showTimeSlots ? 45 : 30),
+            width: (showTimeSlots ? 45 : 30).w,
             child: const Center(
               child: Text(
                 '日期',
@@ -265,194 +271,20 @@ class CourseTable extends StatelessWidget {
     );
   }
 
-  /// 构建课程单元格
-  Widget _buildCourseCell(BuildContext context, Map<String, dynamic> course) {
-    // 检查课程是否在当前周显示
-    if (!List<int>.from(course['weeks'] ?? []).contains(week)) {
-      return Container();
-    }
-
-    // 计算课程时长
-    int duration = 0;
-    for (var time in course['times']) {
-      if (time is List && time.length >= 3) {
-        int startClass = TimeUtils.getClassValue(time[1].toString());
-        int endClass = TimeUtils.getClassValue(time[2].toString());
-        int currentDuration = endClass - startClass + 1;
-        if (currentDuration > duration) {
-          duration = currentDuration;
-        }
+  /// 获取课程颜色，添加验证以避免黑色
+  Color _getCourseColor(Map<String, dynamic> course) {
+    try {
+      // 如果课程颜色数据不存在或不是列表，使用默认主题色
+      if (course['color'] == null) {
+        return themeColor;
       }
+
+      return ColorUtils.storageToColor(course['color'],
+          defaultColor: themeColor);
+    } catch (e) {
+      // 出现任何错误，返回默认主题色
+      return themeColor;
     }
-
-    // 根据课程时长调整布局
-    bool isSmallCard = duration == 1;
-    bool isLargeCard = duration >= 4;
-    bool needsCompactLayout = isSmallCard || isLargeCard;
-
-    return GestureDetector(
-      onTap: () => showCourseInfo(
-        context,
-        course,
-        themeColor: themeColor,
-        onCourseUpdated: onCourseUpdated,
-        onCourseDeleted: onCourseDeleted,
-      ),
-      child: Container(
-        margin: EdgeInsets.all(1.r),
-        padding: EdgeInsets.all(4.r),
-        decoration: BoxDecoration(
-          color: _getCourseColor(course),
-          borderRadius: BorderRadius.circular(4.r),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // 课程名称
-            Expanded(
-              flex: needsCompactLayout ? 1 : 2,
-              child: Text(
-                course['courseName'] ?? '未输入课程名',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: showWeekend ? 13.sp : 14.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: needsCompactLayout ? 1 : (showWeekend ? 3 : 2),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-
-            // 底部信息区域
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 教师姓名（如果有）- 只在不是小卡片时显示
-                if ((course['teacherName']?.isNotEmpty ?? false) &&
-                    !isSmallCard)
-                  Text(
-                    '@${course['teacherName']}',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: showWeekend ? 10.sp : 11.sp,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                // 周次信息
-                Text(
-                  _formatWeeks(List<int>.from(course['weeks'] ?? [])),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: showWeekend ? 10.sp : 11.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 构建课程格子列表
-  List<Widget> _buildCourseCells(
-    List<Map<String, dynamic>> columnCourses,
-    int col,
-    BuildContext context,
-  ) {
-    List<Widget> cells = [];
-    Set<int> occupiedSlots = {};
-
-    // 按开始时间排序课程
-    columnCourses.sort((a, b) {
-      int aStart = _getStartTime(a['times'], col);
-      int bStart = _getStartTime(b['times'], col);
-      return aStart.compareTo(bStart);
-    });
-
-    for (int row = 0; row < 10; row++) {
-      if (occupiedSlots.contains(row)) continue;
-
-      final courseInfo = _findCourseForSlot(columnCourses, col, row);
-      if (courseInfo != null) {
-        final (course, startClass, endClass) = courseInfo;
-        final duration = endClass - startClass + 1;
-
-        // 标记被占用的时间段
-        for (int i = startClass - 1; i < endClass; i++) {
-          occupiedSlots.add(i);
-        }
-
-        cells.add(Expanded(
-          flex: duration,
-          child: Container(
-            decoration: BoxDecoration(
-              border: showGrid
-                  ? Border.all(color: Colors.grey[200]!)
-                  : Border.all(color: Colors.transparent),
-            ),
-            child: _buildCourseCell(context, course),
-          ),
-        ));
-      } else {
-        cells.add(Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              border: showGrid
-                  ? Border.all(color: Colors.grey[200]!)
-                  : Border.all(color: Colors.transparent),
-            ),
-          ),
-        ));
-      }
-    }
-
-    return cells;
-  }
-
-  /// 查找指定时间段的课程
-  (Map<String, dynamic>, int, int)? _findCourseForSlot(
-    List<Map<String, dynamic>> courses,
-    int col,
-    int row,
-  ) {
-    for (var course in courses) {
-      var time = course['times'].firstWhere((time) {
-        if (time is! List || time.length < 3) return false;
-        if (TimeUtils.getDayValue(time[0].toString()) != col + 1) return false;
-
-        int startClass = TimeUtils.getClassValue(time[1].toString());
-        int endClass = TimeUtils.getClassValue(time[2].toString());
-
-        if (!TimeUtils.isValidTimeRange(startClass, endClass)) return false;
-
-        return row + 1 >= startClass && row + 1 <= endClass;
-      }, orElse: () => List<dynamic>.empty());
-
-      if (time is List && time.isNotEmpty) {
-        int startClass = TimeUtils.getClassValue(time[1].toString());
-        int endClass = TimeUtils.getClassValue(time[2].toString());
-        return (course, startClass, endClass);
-      }
-    }
-    return null;
-  }
-
-  /// 获取课程开始时间
-  int _getStartTime(List<dynamic> times, int col) {
-    var time = times.firstWhere(
-      (time) => TimeUtils.getDayValue(time[0].toString()) == col + 1,
-      orElse: () => List<dynamic>.empty(),
-    );
-    if (time is! List || time.isEmpty) return 999;
-    return TimeUtils.getClassValue(time[1].toString());
   }
 
   /// 检查是否是今天
@@ -496,52 +328,283 @@ class CourseTable extends StatelessWidget {
     return '${ranges.join(',')}周';
   }
 
-  /// 获取课程颜色，添加验证以避免黑色
-  Color _getCourseColor(Map<String, dynamic> course) {
-    return ColorUtils.storageToColor(course['color'], defaultColor: themeColor);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildHeader(),
-        Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    try {
+      return Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildTimeColumn(),
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: List.generate(showWeekend ? 7 : 5, (col) {
+                      // 获取这一列的所有课程
+                      final columnCourses = courses.where((course) {
+                        if (course['semester'] != currentSemester) return false;
+
+                        List<int> weeks = [];
+                        if (course['weeks'] != null &&
+                            course['weeks'] is List) {
+                          try {
+                            weeks = List<int>.from(course['weeks']);
+                          } catch (e) {
+                            return false;
+                          }
+                        }
+
+                        if (!weeks.contains(week)) return false;
+
+                        if (course['times'] == null ||
+                            course['times'] is! List) {
+                          return false;
+                        }
+
+                        return course['times'].any((time) {
+                          if (time is! List || time.length < 3) return false;
+                          final dayNum =
+                              TimeUtils.getDayValue(time[0].toString());
+                          return dayNum == col + 1;
+                        });
+                      }).toList();
+
+                      // 使用LayoutBuilder获取精确高度
+                      return Expanded(
+                        child: LayoutBuilder(builder: (context, constraints) {
+                          final cellHeight = constraints.maxHeight / 10;
+                          return Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              // 首先绘制网格线
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: List.generate(10, (row) {
+                                  return Container(
+                                    height: cellHeight,
+                                    decoration: BoxDecoration(
+                                      color: row % 2 == 0
+                                          ? Colors.grey[50]
+                                          : Colors.white,
+                                      border: showGrid
+                                          ? Border.all(color: Colors.grey[200]!)
+                                          : Border.all(
+                                              color: Colors.transparent),
+                                    ),
+                                  );
+                                }),
+                              ),
+                              // 课程定位 - 修复类型错误
+                              for (final course in columnCourses)
+                                if (course['times'] is List)
+                                  for (final time in course['times'])
+                                    if (time is List &&
+                                        time.length >= 3 &&
+                                        TimeUtils.getDayValue(
+                                                time[0].toString()) ==
+                                            col + 1)
+                                      Builder(builder: (context) {
+                                        final startClass =
+                                            TimeUtils.getClassValue(
+                                                time[1].toString());
+                                        final endClass =
+                                            TimeUtils.getClassValue(
+                                                time[2].toString());
+
+                                        if (!TimeUtils.isValidTimeRange(
+                                            startClass, endClass)) {
+                                          return const SizedBox.shrink();
+                                        }
+
+                                        // 计算位置和高度
+                                        final top =
+                                            (startClass - 1) * cellHeight;
+                                        final height =
+                                            (endClass - startClass + 1) *
+                                                cellHeight;
+
+                                        // 检查单前时间段的时长
+                                        final currentDuration =
+                                            endClass - startClass + 1;
+
+                                        return Positioned(
+                                          top: top + 1,
+                                          height: height - 2,
+                                          left: 2,
+                                          right: 2,
+                                          child: _buildCourseCardForTime(
+                                              context,
+                                              course,
+                                              currentDuration,
+                                              time),
+                                        );
+                                      }),
+                            ],
+                          );
+                        }),
+                      );
+                    }),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    } catch (e) {
+      // 发生错误时显示错误信息
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.red[700]),
+            const SizedBox(height: 16),
+            Text(
+              '课程表加载错误',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.red[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '请检查课程数据格式是否正确',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  /// 为特定时间段构建课程卡片
+  Widget _buildCourseCardForTime(BuildContext context,
+      Map<String, dynamic> course, int duration, List<dynamic> time) {
+    try {
+      // 判断是否为小卡片（一节课）
+      bool isSmallCard = duration == 1;
+
+      // 获取课程名称，确保有默认值
+      String courseName = '未输入课程名';
+      if (course['courseName'] != null && course['courseName'] is String) {
+        courseName = course['courseName'];
+      }
+
+      // 获取教师名称
+      String? teacherName;
+      if (course['teacherName'] != null && course['teacherName'] is String) {
+        teacherName = course['teacherName'];
+      }
+
+      // 获取周次
+      List<int> weeks = [];
+      if (course['weeks'] != null && course['weeks'] is List) {
+        weeks = List<int>.from(course['weeks']);
+      }
+
+      return GestureDetector(
+        onTap: () => showCourseInfo(
+          context,
+          course,
+          themeColor: themeColor,
+          onCourseUpdated: onCourseUpdated,
+          onCourseDeleted: onCourseDeleted,
+        ),
+        child: Container(
+          margin: EdgeInsets.all(2.r),
+          padding: EdgeInsets.symmetric(horizontal: 4.r, vertical: 6.r),
+          decoration: BoxDecoration(
+            color: _getCourseColor(course),
+            borderRadius: BorderRadius.circular(4.r),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 2,
+                offset: Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildTimeColumn(),
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: List.generate(showWeekend ? 7 : 5, (col) {
-                    // 获取这一列的所有课程
-                    final columnCourses = courses.where((course) {
-                      if (course['semester'] != currentSemester) return false;
-                      if (!course['weeks'].contains(week)) return false;
+              // 课程名称
+              Text(
+                courseName,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: (showWeekend ? 12 : 13).sp,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: isSmallCard ? 1 : 3,
+                overflow: TextOverflow.ellipsis,
+              ),
 
-                      return course['times'].any((time) {
-                        if (time is! List || time.length < 3) return false;
-                        final dayNum =
-                            TimeUtils.getDayValue(time[0].toString());
-                        return dayNum == col + 1;
-                      });
-                    }).toList();
-
-                    return Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children:
-                            _buildCourseCells(columnCourses, col, context),
+              // 底部信息区域 - 总是在底部显示
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 教师姓名（如果有）- 只在不是小卡片时显示
+                    if (teacherName != null &&
+                        teacherName.isNotEmpty &&
+                        !isSmallCard)
+                      Text(
+                        '@$teacherName',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: (showWeekend ? 9 : 10).sp,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    );
-                  }),
+
+                    // 周次信息
+                    Text(
+                      _formatWeeks(weeks),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: (showWeekend ? 9 : 10).sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-      ],
-    );
+      );
+    } catch (e) {
+      // 发生错误时显示错误占位符
+      return Container(
+        margin: EdgeInsets.all(2.r),
+        padding: EdgeInsets.all(4.r),
+        decoration: BoxDecoration(
+          color: Colors.red[800],
+          borderRadius: BorderRadius.circular(4.r),
+        ),
+        child: Center(
+          child: Text(
+            '数据错误',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10.sp,
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

@@ -37,9 +37,9 @@ class TimePickerWidget extends StatelessWidget {
                 .map(
                   (time) => Chip(
                     backgroundColor: Color.fromRGBO(
-                      currentColor.r.toInt(),
-                      currentColor.g.toInt(),
-                      currentColor.b.toInt(),
+                      (currentColor.r * 255).round(),
+                      (currentColor.g * 255).round(),
+                      (currentColor.b * 255).round(),
                       0.1,
                     ),
                     label: Text(

@@ -136,7 +136,8 @@ class SemesterManager {
           await CourseStorageHive.getSemesterStartDate(semester);
 
       final isSelected = currentSemester == semester;
-      final bgColor = isSelected ? themeColor.withOpacity(0.15) : Colors.white;
+      final bgColor =
+          isSelected ? themeColor.withValues(alpha: 0.15) : Colors.white;
       final borderColor = isSelected ? themeColor : Colors.grey.shade300;
       final borderWidth = isSelected ? 2.0 : 1.0;
 
@@ -154,7 +155,7 @@ class SemesterManager {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: themeColor.withOpacity(0.3),
+                      color: themeColor.withValues(alpha: 0.3),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     )
